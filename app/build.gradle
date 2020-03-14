@@ -54,4 +54,8 @@ dependencies {
     //Butterknife
     implementation 'com.jakewharton:butterknife:10.2.0'
     kapt 'com.jakewharton:butterknife-compiler:10.2.0'
+
+    //Maps
+    implementation 'com.google.maps.android:android-maps-utils:0.6.1'
+
 }
