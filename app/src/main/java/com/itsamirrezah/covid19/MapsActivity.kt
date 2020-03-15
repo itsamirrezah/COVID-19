@@ -34,6 +34,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mClusterManager = ClusterManager(this, mMap)
+        mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
         getAllCases()
         val mapStyleOption =
             MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_shades_of_gray)
