@@ -12,14 +12,18 @@ data class AreaCasesModel(
     val province: String,
     val deathsHistory: LinkedTreeMap<String, String>,
     val confirmedHistory: LinkedTreeMap<String, String>,
-    val recoverHistory: LinkedTreeMap<String, String>
+    val recoverHistory: LinkedTreeMap<String, String>,
+    val latestConfirmed: Long,
+    val latestDeaths: Long,
+    val latestRecovered: Long
+
 ) : ClusterItem {
     override fun getSnippet(): String {
-        return ""
+        return province
     }
 
     override fun getTitle(): String {
-        return "confirmed: " + confirmedHistory.values.sumBy { it.toInt() }
+        return country
     }
 
     override fun getPosition(): LatLng {

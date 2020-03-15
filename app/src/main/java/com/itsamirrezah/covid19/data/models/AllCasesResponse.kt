@@ -43,8 +43,8 @@ data class Area(
     val countryCode: String,
     @SerializedName("history")
     val history: LinkedTreeMap<String, String>,
-    @SerializedName("Latest")
-    val latest: Int,
+    @SerializedName("latest")
+    val latest: Long,
     @SerializedName("province")
     val province: String
 )

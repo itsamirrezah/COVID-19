@@ -21,7 +21,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
-        //map
+        //init map
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -37,8 +37,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun getAllCases() {
         val requestAllCases = CovidApiImp.getApi()
             .getAllCases()
+            //map data model to ui model
             .map {
-                //map data model to ui model
                 val areaCasesModel = mutableListOf<AreaCasesModel>()
                 for (area in it.confirmed.locations) {
                     val index = it.confirmed.locations.indexOf(area)
@@ -51,7 +51,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             area.province,
                             it.deaths.locations[index].history,
                             area.history,
-                            it.recovered.locations[index].history
+                            it.recovered.locations[index].history,
+                            it.confirmed.locations[index].latest,
+                            it.deaths.locations[index].latest,
+                            it.recovered.locations[index].latest
                         )
                     )
                 }
