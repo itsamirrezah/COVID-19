@@ -2,12 +2,17 @@ package com.itsamirrezah.covid19
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.utils.AreaMarker
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -29,9 +34,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        mClusterManager = ClusterManager<AreaCasesModel>(this, mMap)
-        mMap.setOnCameraIdleListener(mClusterManager)
         getAllCases()
+        val mapStyleOption =
+            MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_shades_of_gray)
+        mMap.setMapStyle(mapStyleOption)
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
     }
 
     private fun getAllCases() {
