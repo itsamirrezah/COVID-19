@@ -1,4 +1,4 @@
-package com.itsamirrezah.covid19.utils
+package com.itsamirrezah.covid19.util
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -16,13 +16,10 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.google.maps.android.ui.IconGenerator
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
-import kotlin.math.abs
-import kotlin.math.log10
-import kotlin.math.pow
 
 
 class AreaMarker(
-    private val context: Context,
+    context: Context,
     mMap: GoogleMap,
     clusterManager: ClusterManager<AreaCasesModel>
 ) : DefaultClusterRenderer<AreaCasesModel>(context, mMap, clusterManager) {
@@ -30,14 +27,12 @@ class AreaMarker(
     private var markerRootView: View =
         LayoutInflater.from(context).inflate(R.layout.area_case_marker, null) as LinearLayout
 
-
     private var clusterRootView =
         LayoutInflater.from(context).inflate(R.layout.cluster_marker, null) as FrameLayout
 
     private var clusterIconGen: IconGenerator = IconGenerator(context)
 
     private var markerIconGen: IconGenerator = IconGenerator(context)
-
 
     init {
         val clusterDrawable = ContextCompat.getDrawable(context, android.R.color.transparent)
@@ -63,26 +58,14 @@ class AreaMarker(
         cluster: Cluster<AreaCasesModel>?,
         markerOptions: MarkerOptions?
     ) {
-
         val tvClusterCases = clusterRootView.findViewById<TextView>(R.id.tvClusterCases)
-        val clusterCasesCount = cluster!!.items.sumBy { it.latestConfirmed.toInt() }
 
-        tvClusterCases.text = when {
-            clusterCasesCount.length() < 2 -> "1+"
-            (10.0.pow(clusterCasesCount.length().toDouble()) / 2) > clusterCasesCount -> "${10.0.pow(
-                clusterCasesCount.length() - 1
-            ).toInt()}+"
-            else -> "${(10.0.pow(clusterCasesCount.length()) / 2).toInt()}+"
-        }
+        val clusterCasesCount = cluster!!.items.sumBy { it.latestConfirmed.toInt() }
+        tvClusterCases.text = "+".plus(Utils.randDigit(clusterCasesCount))
 
         val icon = clusterIconGen.makeIcon()
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
 
-    companion object {
-        fun Int.length() = when (this) {
-            0 -> 1
-            else -> log10(abs(toDouble())).toInt() + 1
-        }
-    }
+
 }

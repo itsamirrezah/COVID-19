@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
-import com.itsamirrezah.covid19.utils.AreaMarker
+import com.itsamirrezah.covid19.util.AreaMarker
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -34,14 +34,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        mMap.uiSettings.isRotateGesturesEnabled = false
-        mMap.uiSettings.isMyLocationButtonEnabled = false
-        mMap.uiSettings.isMapToolbarEnabled = false
-        mMap.uiSettings.isZoomControlsEnabled = true
-        val mapStyleOption =
-            MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_shades_of_gray)
-        mMap.setMapStyle(mapStyleOption)
+        setupMap(mMap)
+        setupClusterManager(mMap)
+        getAllCases()
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
+    }
 
+    private fun setupClusterManager(mMap: GoogleMap) {
         mClusterManager = ClusterManager(this, mMap)
         mClusterManager.algorithm.maxDistanceBetweenClusteredItems = 155
         mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
@@ -49,7 +48,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.setOnMarkerClickListener(mClusterManager)
 
         mClusterManager.setOnClusterClickListener {
-
             val areas = mutableListOf<AreaCasesModel>()
             areas.addAll(it.items)
             val boundBuilder = LatLngBounds.builder()
@@ -63,9 +61,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             true
         }
+    }
 
-        getAllCases()
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
+    private fun setupMap(googleMap: GoogleMap) {
+        mMap.uiSettings.isRotateGesturesEnabled = false
+        mMap.uiSettings.isMyLocationButtonEnabled = false
+        mMap.uiSettings.isMapToolbarEnabled = false
+        mMap.uiSettings.isZoomControlsEnabled = true
+
+        //set dark style to map
+        val mapStyleOption =
+            MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_shades_of_gray)
+        mMap.setMapStyle(mapStyleOption)
     }
 
     private fun getAllCases() {
@@ -76,6 +83,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val areaCasesModel = mutableListOf<AreaCasesModel>()
                 for (area in it.confirmed.locations) {
                     val index = it.confirmed.locations.indexOf(area)
+                    //just get the locations that has at least one confirm case
+                    if (it.confirmed.locations[index].latest < 1)
+                        continue
+
                     areaCasesModel.add(
                         AreaCasesModel(
                             area.coordinates.lat,
