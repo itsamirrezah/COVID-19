@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_curve_square"
+    android:contentDescription="@null">
+
+    <TextView
+        android:id="@+id/tvClusterCases"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="15dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="10dp"
+        android:textColor="#FFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+</FrameLayout>

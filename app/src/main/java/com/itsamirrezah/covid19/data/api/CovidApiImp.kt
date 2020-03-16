@@ -20,7 +20,7 @@ class CovidApiImp {
                 .addInterceptor(loggingInterceptor)
 
             val retrofit = Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:5000")
+                .baseUrl("https://coronavirus-tracker-api.herokuapp.com")
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient.build())

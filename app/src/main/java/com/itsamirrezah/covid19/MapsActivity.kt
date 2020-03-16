@@ -34,12 +34,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        mClusterManager = ClusterManager(this, mMap)
-        mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
-        getAllCases()
+        mMap.uiSettings.isRotateGesturesEnabled = false
+        mMap.uiSettings.isMyLocationButtonEnabled = false
+        mMap.uiSettings.isMapToolbarEnabled = false
+        mMap.uiSettings.isZoomControlsEnabled = true
         val mapStyleOption =
             MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_shades_of_gray)
         mMap.setMapStyle(mapStyleOption)
+
+        mClusterManager = ClusterManager(this, mMap)
+        mClusterManager.algorithm.maxDistanceBetweenClusteredItems = 155
+        mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
+        mMap.setOnCameraIdleListener(mClusterManager)
+        mMap.setOnMarkerClickListener(mClusterManager)
+
+        mClusterManager.setOnClusterClickListener {
+
+            val areas = mutableListOf<AreaCasesModel>()
+            areas.addAll(it.items)
+            val boundBuilder = LatLngBounds.builder()
+            var clusterItemsCount = 0
+            for (item in areas) {
+                boundBuilder.include(item.position)
+                clusterItemsCount++
+            }
+            if (clusterItemsCount > 1)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 100))
+
+            true
+        }
+
+        getAllCases()
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
     }
 
@@ -73,7 +98,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 mClusterManager.clearItems()
-                mClusterManager.cluster()
                 mClusterManager.addItems(it)
                 mClusterManager.cluster()
 
