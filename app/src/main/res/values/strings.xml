@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">COVID19</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="app_name">COVID-19 Tracker</string>
+    <string name="title_main_activity">Main</string>
 </resources>
