@@ -16,10 +16,11 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.google.maps.android.ui.IconGenerator
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.util.Utils.Companion.length
 
 
 class AreaMarker(
-    context: Context,
+    private val context: Context,
     mMap: GoogleMap,
     clusterManager: ClusterManager<AreaCasesModel>
 ) : DefaultClusterRenderer<AreaCasesModel>(context, mMap, clusterManager) {
@@ -62,10 +63,21 @@ class AreaMarker(
 
         val clusterCasesCount = cluster!!.items.sumBy { it.latestConfirmed.toInt() }
         tvClusterCases.text = "+".plus(Utils.randDigit(clusterCasesCount))
+        clusterRootView.backgroundTintList =
+            ContextCompat.getColorStateList(context, getClusterColor(clusterCasesCount))
 
         val icon = clusterIconGen.makeIcon()
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
 
-
+    private fun getClusterColor(clusterCases: Int): Int{
+        return when (clusterCases.length()) {
+            1 -> R.color.yellow_700
+            2 -> R.color.amber_800
+            3 -> R.color.yellow_900
+            4 -> R.color.deep_orange_900
+            else -> R.color.red_900
+        }
+    }
+    //todo: move cluster click here
 }
