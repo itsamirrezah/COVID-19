@@ -6,6 +6,6 @@ import retrofit2.http.GET
 
 interface CovidApi {
 
-    @GET("/all")
+    @GET("/v2/locations")
     fun getAllCases(): Observable<AllCasesResponse>
 }

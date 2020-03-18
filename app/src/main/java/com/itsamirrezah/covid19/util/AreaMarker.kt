@@ -7,8 +7,10 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.clustering.Cluster
 import com.google.maps.android.clustering.ClusterManager
@@ -21,9 +23,10 @@ import com.itsamirrezah.covid19.util.Utils.Companion.length
 
 class AreaMarker(
     private val context: Context,
-    mMap: GoogleMap,
+    val mMap: GoogleMap,
     clusterManager: ClusterManager<AreaCasesModel>
-) : DefaultClusterRenderer<AreaCasesModel>(context, mMap, clusterManager) {
+) : DefaultClusterRenderer<AreaCasesModel>(context, mMap, clusterManager),
+    ClusterManager.OnClusterClickListener<AreaCasesModel> {
 
     private var markerRootView: View =
         LayoutInflater.from(context).inflate(R.layout.area_case_marker, null) as LinearLayout
@@ -36,6 +39,7 @@ class AreaMarker(
     private var markerIconGen: IconGenerator = IconGenerator(context)
 
     init {
+        clusterManager.setOnClusterClickListener(this)
         val clusterDrawable = ContextCompat.getDrawable(context, android.R.color.transparent)
         clusterIconGen.setBackground(clusterDrawable)
         clusterIconGen.setContentView(clusterRootView)
@@ -47,9 +51,9 @@ class AreaMarker(
 
     override fun onBeforeClusterItemRendered(item: AreaCasesModel?, markerOptions: MarkerOptions?) {
         markerRootView.findViewById<TextView>(R.id.tvCaseMarker).text =
-            item!!.latestConfirmed.toString()
+            item!!.latestConfirmed
         markerRootView.findViewById<TextView>(R.id.tvDeathMarker).text =
-            item.latestDeaths.toString()
+            item.latestDeaths
 
         val icon = markerIconGen.makeIcon()
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
@@ -70,7 +74,23 @@ class AreaMarker(
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
 
-    private fun getClusterColor(clusterCases: Int): Int{
+
+    override fun onClusterClick(cluster: Cluster<AreaCasesModel>?): Boolean {
+        val areas = mutableListOf<AreaCasesModel>()
+        areas.addAll(cluster!!.items)
+        val boundBuilder = LatLngBounds.builder()
+        var clusterItemsCount = 0
+        for (item in areas) {
+            boundBuilder.include(item.position)
+            clusterItemsCount++
+        }
+        if (clusterItemsCount > 1)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 100))
+
+        return true
+    }
+
+    private fun getClusterColor(clusterCases: Int): Int {
         return when (clusterCases.length()) {
             1 -> R.color.yellow_700
             2 -> R.color.amber_800
@@ -79,5 +99,4 @@ class AreaMarker(
             else -> R.color.red_900
         }
     }
-    //todo: move cluster click here
 }

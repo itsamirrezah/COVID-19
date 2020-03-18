@@ -2,17 +2,12 @@ package com.itsamirrezah.covid19.data.models
 
 import com.google.gson.annotations.SerializedName
 import com.google.gson.internal.LinkedTreeMap
+import java.sql.Time
 
 
 data class AllCasesResponse(
-    @SerializedName("latest")
-    val latest: Latest,
-    @SerializedName("confirmed")
-    val confirmed: Cases,
-    @SerializedName("deaths")
-    val deaths: Cases,
-    @SerializedName("recovered")
-    val recovered: Cases
+    @SerializedName("locations")
+    val areas: List<Area>
 )
 
 data class Latest(
@@ -22,36 +17,44 @@ data class Latest(
     val deaths: Long,
     @SerializedName("recovered")
     val recovered: Long
-
-)
-
-data class Cases(
-    @SerializedName("last_updated")
-    val lastUpdated: String,
-    @SerializedName("latest")
-    val latest: Long,
-    @SerializedName("locations")
-    val locations: List<Area>
 )
 
 data class Area(
+    @SerializedName("id")
+    val id: Int,
     @SerializedName("coordinates")
     val coordinates: Coordinates,
     @SerializedName("country")
     val country: String,
     @SerializedName("country_code")
     val countryCode: String,
-    @SerializedName("history")
-    val history: LinkedTreeMap<String, String>,
+    @SerializedName("timelines")
+    val timelines: Timelines,
     @SerializedName("latest")
-    val latest: Long,
+    val latest: Latest,
     @SerializedName("province")
     val province: String
 )
 
 data class Coordinates(
-    @SerializedName("lat")
-    val lat: Double,
-    @SerializedName("long")
-    val long: Double
+    @SerializedName("latitude")
+    val lat: String,
+    @SerializedName("longitude")
+    val lon: String
+)
+
+data class Timelines(
+    @SerializedName("confirmed")
+    val confirmed: Timeline,
+    @SerializedName("deaths")
+    val deaths: Timeline,
+    @SerializedName("recovered")
+    val recovered: Timeline
+)
+
+data class Timeline(
+    @SerializedName("latest")
+    val latest: Long,
+    @SerializedName("timeline")
+    val timeline: LinkedTreeMap<Time, Int>
 )
