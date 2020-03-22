@@ -44,5 +44,15 @@ class Utils {
         fun toLocalDate(utcDate: String): LocalDate {
             return LocalDate.parse(utcDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
         }
+
+        //e.g: (2020-3-22)-3 = (2020-3-19)
+        fun minusDateByInt(date: LocalDate, value: Long): LocalDate? {
+            return date.minusDays(value)
+        }
+
+        //e.g: Dec 18
+        fun shortRelativeDate(localDate: LocalDate): String {
+            return localDate.format(DateTimeFormatter.ofPattern("MMM dd"))
+        }
     }
 }

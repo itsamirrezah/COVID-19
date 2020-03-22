@@ -19,6 +19,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.util.DateXAxisValueFormatter
 import com.itsamirrezah.covid19.util.Utils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -184,6 +185,11 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         // draw points over time
         lineChart.animateX(500)
+        //setup x-axis values
+        lineChart.xAxis.valueFormatter = DateXAxisValueFormatter(
+            areaCaseModel.confirmedHistory.last().first,
+            areaCaseModel.confirmedHistory.size
+        )
     }
 
     private fun setupDataset(entries: List<Entry>, text: String, color: Int): LineDataSet {
