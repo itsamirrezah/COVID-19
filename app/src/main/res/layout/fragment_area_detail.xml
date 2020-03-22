@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bshCountryDetail"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal"
+    android:alpha="0.9"
+    android:clickable="true"
+    android:focusable="true"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="0dp"
+    app:cardBackgroundColor="@color/grey_200"
+    app:cardCornerRadius="@dimen/spacing_middle"
+    app:cardElevation="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="20dp"
+            android:layout_height="5dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:layout_marginBottom="@dimen/spacing_medium"
+            android:background="@drawable/bg_curve_square"
+            android:backgroundTint="@color/grey_400" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:minHeight="?attr/actionBarSize"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/spacing_large"
+            android:paddingEnd="@dimen/spacing_large">
+
+            <TextView
+                android:id="@+id/tvCountry"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="Worldwide"
+                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                android:textColor="?attr/colorOnSecondary"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/bg_curve_square"
+                android:backgroundTint="@color/grey_400" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/spacing_large"
+            android:paddingEnd="@dimen/spacing_large">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_horizontal"
+                android:minHeight="?attr/actionBarSize"
+                android:orientation="horizontal"
+                android:paddingStart="3dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="@dimen/spacing_small"
+                android:paddingBottom="10dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:text="Confirmed"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:textColor="?attr/colorOnSecondary" />
+
+                    <TextView
+                        android:id="@+id/tvConfirmed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center_horizontal"
+                        android:minWidth="105dp"
+                        android:text="1,000,000"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                        android:textColor="@color/yellow_900" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:text="Recovered"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:textColor="?attr/colorOnSecondary" />
+
+                    <TextView
+                        android:id="@+id/tvRecovered"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center_horizontal"
+                        android:minWidth="105dp"
+                        android:text="1,000,000"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                        android:textColor="@color/green_900" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:text="Deaths"
+
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:textColor="?attr/colorOnSecondary" />
+
+                    <TextView
+                        android:id="@+id/tvDeaths"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center_horizontal"
+                        android:minWidth="105dp"
+                        android:text="1,000,000"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                        android:textColor="@color/red_900" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/bg_curve_square"
+
+                android:backgroundTint="@color/grey_400" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/spacing_large"
+            android:paddingTop="10dp"
+            android:paddingEnd="@dimen/spacing_large"
+            android:paddingBottom="10dp">
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/lineChart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:alpha="0.7"
+                android:backgroundTint="@color/grey_200" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/bg_curve_square"
+
+                android:backgroundTint="@color/grey_400" />
+        </LinearLayout>
+
+
+        <!--        <androidx.core.widget.NestedScrollView-->
+        <!--            android:id="@+id/nested_scroll_view"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="match_parent"-->
+        <!--            android:fillViewport="true"-->
+        <!--            android:scrollbars="none">-->
+
+        <!--            <LinearLayout-->
+        <!--                android:layout_width="match_parent"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:orientation="vertical"-->
+        <!--                android:paddingStart="@dimen/spacing_large"-->
+        <!--                android:paddingEnd="@dimen/spacing_large"-->
+        <!--                android:paddingBottom="@dimen/spacing_large">-->
+
+
+        <!--                <LinearLayout-->
+        <!--                    android:id="@+id/expand_layout"-->
+        <!--                    android:layout_width="match_parent"-->
+        <!--                    android:layout_height="wrap_content"-->
+        <!--                    android:layout_gravity="center_horizontal"-->
+        <!--                    android:animateLayoutChanges="true"-->
+        <!--                    android:gravity="center_horizontal"-->
+        <!--                    android:orientation="vertical"-->
+        <!--                    android:visibility="visible">-->
+
+        <!--                    <TextView-->
+        <!--                        android:id="@+id/text_application_info"-->
+        <!--                        android:layout_width="match_parent"-->
+        <!--                        android:layout_height="wrap_content"-->
+        <!--                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />-->
+
+        <!--                    &lt;!&ndash;                    <TextView&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        style="@style/HeadlineTextStyle"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:text="@string/developer_info_title" />&ndash;&gt;-->
+
+        <!--                    &lt;!&ndash;                    <TextView&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:id="@+id/text_developer_info"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:layout_width="match_parent"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:layout_height="wrap_content" />&ndash;&gt;-->
+
+        <!--                    &lt;!&ndash;                    <TextView&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        style="@style/HeadlineTextStyle"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:text="@string/design_api_title" />&ndash;&gt;-->
+
+        <!--                    &lt;!&ndash;                    <TextView&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:id="@+id/text_design_api"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:layout_width="match_parent"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:layout_height="wrap_content" />&ndash;&gt;-->
+
+        <!--                    &lt;!&ndash;                    <TextView&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        style="@style/HeadlineTextStyle"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:text="@string/libraries_title" />&ndash;&gt;-->
+
+        <!--                    <TextView-->
+        <!--                        android:id="@+id/text_libraries"-->
+        <!--                        android:layout_width="match_parent"-->
+        <!--                        android:layout_height="wrap_content" />-->
+
+        <!--                    &lt;!&ndash;                    <TextView&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        style="@style/HeadlineTextStyle"&ndash;&gt;-->
+        <!--                    &lt;!&ndash;                        android:text="@string/license_title" />&ndash;&gt;-->
+
+        <!--                    <TextView-->
+        <!--                        android:id="@+id/text_license"-->
+        <!--                        android:layout_width="match_parent"-->
+        <!--                        android:layout_height="wrap_content" />-->
+
+
+        <!--                </LinearLayout>-->
+        <!--            </LinearLayout>-->
+        <!--        </androidx.core.widget.NestedScrollView>-->
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

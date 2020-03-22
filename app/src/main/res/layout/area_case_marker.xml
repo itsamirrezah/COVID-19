@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@android:color/transparent"
     android:orientation="vertical">
 
@@ -18,50 +18,52 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical|center_horizontal"
-            android:paddingTop="5dp"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
             android:orientation="vertical"
+            android:paddingLeft="5dp"
+            android:paddingTop="5dp"
+            android:paddingRight="5dp"
             android:paddingBottom="5dp">
 
             <TextView
                 android:id="@+id/tvCaseMarker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="120,123"
                 android:textColor="#263238"
-                android:textStyle="bold"
-                android:text="120,123" />
+                android:textStyle="bold" />
+
             <TextView
-                android:layout_marginTop="-5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="-5dp"
+                android:text="cases"
                 android:textColor="#263238"
-                android:textSize="10sp"
-                android:text="cases" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/tvDeathMarker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="120,123"
                 android:textColor="#263238"
-                android:textStyle="bold"
-                android:text="120,123" />
+                android:textStyle="bold" />
+
             <TextView
-                android:layout_marginTop="-5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="-5dp"
+                android:text="death"
                 android:textColor="#263238"
-                android:textSize="10sp"
-                android:text="death" />
+                android:textSize="10sp" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
     <ImageView
-        android:layout_marginTop="-1dp"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_gravity="center"
+        android:layout_marginTop="-1dp"
         android:src="@drawable/ic_marker" />
 
 </LinearLayout>

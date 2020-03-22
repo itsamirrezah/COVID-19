@@ -23,7 +23,7 @@ import com.itsamirrezah.covid19.util.Utils.Companion.length
 
 class AreaMarker(
     private val context: Context,
-    val mMap: GoogleMap,
+    private val mMap: GoogleMap,
     clusterManager: ClusterManager<AreaCasesModel>
 ) : DefaultClusterRenderer<AreaCasesModel>(context, mMap, clusterManager),
     ClusterManager.OnClusterClickListener<AreaCasesModel> {

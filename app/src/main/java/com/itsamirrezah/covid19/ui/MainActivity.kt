@@ -1,4 +1,4 @@
-package com.itsamirrezah.covid19
+package com.itsamirrezah.covid19.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +9,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.clustering.ClusterManager
+import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.util.AreaMarker
@@ -56,7 +57,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         //set dark style to map
         val mapStyleOption =
-            MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_shades_of_gray)
+            MapStyleOptions.loadRawResourceStyle(
+                this,
+                R.raw.mapstyle_shades_of_gray
+            )
         mMap.setMapStyle(mapStyleOption)
     }
 
