@@ -1,5 +1,7 @@
 package com.itsamirrezah.covid19.util
 
+import org.threeten.bp.LocalDate
+import org.threeten.bp.format.DateTimeFormatter
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.log10
@@ -37,6 +39,10 @@ class Utils {
                 number / 1000.0.pow(exp.toDouble()).toInt(),
                 "KM"[exp - 1]
             )
+        }
+
+        fun toLocalDate(utcDate: String): LocalDate {
+            return LocalDate.parse(utcDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
         }
     }
 }

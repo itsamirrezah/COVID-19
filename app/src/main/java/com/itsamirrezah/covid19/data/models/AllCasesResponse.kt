@@ -2,7 +2,6 @@ package com.itsamirrezah.covid19.data.models
 
 import com.google.gson.annotations.SerializedName
 import com.google.gson.internal.LinkedTreeMap
-import java.sql.Time
 
 
 data class AllCasesResponse(
@@ -36,6 +35,11 @@ data class Area(
     val province: String
 )
 
+data class AreaResponse(
+    @SerializedName("location")
+    val area: Area
+)
+
 data class Coordinates(
     @SerializedName("latitude")
     val lat: String,
@@ -56,5 +60,5 @@ data class Timeline(
     @SerializedName("latest")
     val latest: Long,
     @SerializedName("timeline")
-    val timeline: LinkedTreeMap<Time, Int>
+    val timeline: LinkedTreeMap<String, Int>
 )

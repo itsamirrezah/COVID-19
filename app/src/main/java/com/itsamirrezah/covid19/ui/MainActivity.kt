@@ -47,6 +47,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
         mMap.setOnCameraIdleListener(mClusterManager)
         mMap.setOnMarkerClickListener(mClusterManager)
+        mClusterManager.setOnClusterItemClickListener {
+            val bottomSheet = AreaDetailFragment()
+            val bundle = Bundle()
+            bundle.putParcelable("AREA_CASE_MODEL_EXTRA", it)
+            bottomSheet.arguments = bundle
+            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+            true
+        }
     }
 
     private fun setupMap() {
