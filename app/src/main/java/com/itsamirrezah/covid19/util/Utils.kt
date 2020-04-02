@@ -2,6 +2,7 @@ package com.itsamirrezah.covid19.util
 
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
+import java.text.DecimalFormat
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.log10
@@ -30,13 +31,13 @@ class Utils {
 
         //e.g:
         //5,000 -> 5K
-        private fun compactShortDigit(number: Int): String {
+         fun compactShortDigit(number: Int): String {
             if (number < 1000)
                 return "" + number
             val exp = (ln(number.toDouble()) / ln(1000.0)).toInt()
             return String.format(
-                "%d %c",
-                number / 1000.0.pow(exp.toDouble()).toInt(),
+                "%s %c",
+                DecimalFormat("0.#").format(number / 1000.0.pow(exp.toDouble())),
                 "KM"[exp - 1]
             )
         }

@@ -4,7 +4,7 @@ import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.formatter.ValueFormatter
 import org.threeten.bp.LocalDate
 
-class DateXAxisValueFormatter(
+class DateValueFormatter(
     private val lastDate: LocalDate,
     private val recordedSize: Int
 ) : ValueFormatter() {

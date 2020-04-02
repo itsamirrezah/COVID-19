@@ -185,11 +185,14 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         // draw points over time
         lineChart.animateX(500)
-        //setup x-axis values
-        lineChart.xAxis.valueFormatter = DateXAxisValueFormatter(
+        //setup x-axis value formatter: display dates (Mar 13)
+        lineChart.xAxis.valueFormatter = DateValueFormatter(
             areaCaseModel.confirmedHistory.last().first,
             areaCaseModel.confirmedHistory.size
         )
+
+        //setup y-axis value formatter: display values in short compact format (12.5 K)
+        lineChart.axisLeft.valueFormatter = CompactDigitValueFormatter()
     }
 
     private fun setupDataset(entries: List<Entry>, text: String, color: Int): LineDataSet {
