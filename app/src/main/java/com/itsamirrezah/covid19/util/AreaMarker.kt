@@ -74,6 +74,12 @@ class AreaMarker(
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
 
+    override fun shouldRenderAsCluster(cluster: Cluster<AreaCasesModel>?): Boolean {
+        if (cluster!!.size>1)
+            return true
+        return false
+    }
+
 
     override fun onClusterClick(cluster: Cluster<AreaCasesModel>?): Boolean {
         val areas = mutableListOf<AreaCasesModel>()
@@ -99,4 +105,5 @@ class AreaMarker(
             else -> R.color.red_900
         }
     }
+    //todo:change marker & cluster layout
 }

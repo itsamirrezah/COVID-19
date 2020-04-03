@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapStyleOption =
             MapStyleOptions.loadRawResourceStyle(
                 this,
-                R.raw.mapstyle_shades_of_gray
+                R.raw.mapstyle_dark
             )
         mMap.setMapStyle(mapStyleOption)
     }
