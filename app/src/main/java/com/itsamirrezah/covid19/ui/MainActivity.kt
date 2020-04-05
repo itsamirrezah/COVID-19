@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupClusterManager() {
         mClusterManager = ClusterManager(this, mMap)
-        mClusterManager.algorithm.maxDistanceBetweenClusteredItems = 155
+        mClusterManager.algorithm.maxDistanceBetweenClusteredItems = 100
         mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
         mMap.setOnCameraIdleListener(mClusterManager)
         mMap.setOnMarkerClickListener(mClusterManager)
@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isRotateGesturesEnabled = false
         mMap.uiSettings.isMyLocationButtonEnabled = false
         mMap.uiSettings.isMapToolbarEnabled = false
-        mMap.uiSettings.isZoomControlsEnabled = true
+        mMap.uiSettings.isZoomControlsEnabled = false
 
         //set dark style to map
         val mapStyleOption =
