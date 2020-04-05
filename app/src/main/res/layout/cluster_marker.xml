@@ -2,19 +2,36 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_curve_square"
+    android:alpha="0.8"
+    android:background="@drawable/bg_marker"
+    android:backgroundTint="@color/grey_400"
     android:contentDescription="@null">
 
-    <TextView
-        android:id="@+id/tvClusterCases"
+    <FrameLayout
+        android:id="@+id/background"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingStart="10dp"
-        android:paddingTop="5dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="5dp"
-        android:textColor="#FFFF"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:layout_margin="1dp"
+        android:background="@drawable/bg_marker">
+
+        <FrameLayout
+            android:id="@+id/overlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_marker">
+
+            <com.google.maps.android.ui.SquareTextView
+                android:id="@+id/amu_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:text="123"
+                android:textColor="#FFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+    </FrameLayout>
+
 
 </FrameLayout>

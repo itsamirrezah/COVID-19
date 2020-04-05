@@ -1,10 +1,11 @@
 package com.itsamirrezah.covid19.util
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -18,7 +19,7 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.google.maps.android.ui.IconGenerator
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
-import com.itsamirrezah.covid19.util.Utils.Companion.length
+import kotlin.math.min
 
 
 class AreaMarker(
@@ -29,10 +30,27 @@ class AreaMarker(
     ClusterManager.OnClusterClickListener<AreaCasesModel> {
 
     private var markerRootView: View =
-        LayoutInflater.from(context).inflate(R.layout.area_case_marker, null) as LinearLayout
+        LayoutInflater.from(context).inflate(R.layout.cluster_marker, null) as FrameLayout
 
     private var clusterRootView =
         LayoutInflater.from(context).inflate(R.layout.cluster_marker, null) as FrameLayout
+
+    private val tvCaseMarker: TextView = markerRootView.findViewById(R.id.amu_text)
+        get() {
+            field.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            val fourDpi = 6 * context.resources.displayMetrics.density.toInt()
+            field.setPadding(fourDpi, fourDpi, fourDpi, fourDpi)
+            return field
+        }
+
+    private val tvCaseCluster: TextView = clusterRootView.findViewById(R.id.amu_text)
+        get() {
+            field.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            val sixDpi = 4 * context.resources.displayMetrics.density.toInt()
+            field.setPadding(sixDpi, sixDpi, sixDpi, sixDpi)
+            return field
+        }
+
 
     private var clusterIconGen: IconGenerator = IconGenerator(context)
 
@@ -40,21 +58,16 @@ class AreaMarker(
 
     init {
         clusterManager.setOnClusterClickListener(this)
-        val clusterDrawable = ContextCompat.getDrawable(context, android.R.color.transparent)
-        clusterIconGen.setBackground(clusterDrawable)
+        markerRootView.alpha = 0.6f
+        val transparentDrawable = ContextCompat.getDrawable(context, android.R.color.transparent)
+        clusterIconGen.setBackground(transparentDrawable)
         clusterIconGen.setContentView(clusterRootView)
-
-        val markerDrawable = ContextCompat.getDrawable(context, android.R.color.transparent)
-        markerIconGen.setBackground(markerDrawable)
+        markerIconGen.setBackground(transparentDrawable)
         markerIconGen.setContentView(markerRootView)
     }
 
     override fun onBeforeClusterItemRendered(item: AreaCasesModel?, markerOptions: MarkerOptions?) {
-        markerRootView.findViewById<TextView>(R.id.tvCaseMarker).text =
-            item!!.latestConfirmed
-        markerRootView.findViewById<TextView>(R.id.tvDeathMarker).text =
-            item.latestDeaths
-
+        tvCaseMarker.text = item!!.latestConfirmed
         val icon = markerIconGen.makeIcon()
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
@@ -63,23 +76,19 @@ class AreaMarker(
         cluster: Cluster<AreaCasesModel>?,
         markerOptions: MarkerOptions?
     ) {
-        val tvClusterCases = clusterRootView.findViewById<TextView>(R.id.tvClusterCases)
-
         val clusterCasesCount = cluster!!.items.sumBy { it.latestConfirmed.toInt() }
-        tvClusterCases.text = "+".plus(Utils.randDigit(clusterCasesCount))
-        clusterRootView.backgroundTintList =
-            ContextCompat.getColorStateList(context, getClusterColor(clusterCasesCount))
-
+        tvCaseCluster.text = "+".plus(Utils.randDigit(clusterCasesCount))
+        clusterRootView.findViewById<FrameLayout>(R.id.overlay).backgroundTintList =
+            ColorStateList.valueOf(getClusterOverlayColor(clusterCasesCount))
         val icon = clusterIconGen.makeIcon()
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
 
     override fun shouldRenderAsCluster(cluster: Cluster<AreaCasesModel>?): Boolean {
-        if (cluster!!.size>1)
+        if (cluster!!.size > 1)
             return true
         return false
     }
-
 
     override fun onClusterClick(cluster: Cluster<AreaCasesModel>?): Boolean {
         val areas = mutableListOf<AreaCasesModel>()
@@ -96,14 +105,8 @@ class AreaMarker(
         return true
     }
 
-    private fun getClusterColor(clusterCases: Int): Int {
-        return when (clusterCases.length()) {
-            1 -> R.color.yellow_700
-            2 -> R.color.amber_800
-            3 -> R.color.yellow_900
-            4 -> R.color.deep_orange_900
-            else -> R.color.red_900
-        }
+    private fun getClusterOverlayColor(clusterCases: Int): Int {
+        val ratio = min(clusterCases / 40000f, 1f)
+        return Utils.blendColors(context, R.color.overlay_light_30, R.color.overlay_dark_40, ratio)
     }
-    //todo:change marker & cluster layout
 }
