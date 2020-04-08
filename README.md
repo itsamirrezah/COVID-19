@@ -2,7 +2,7 @@
 Android application for tracking the COVID-19 outbreak around the world with [coronavirus-tracker](https://github.com/ExpDev07/coronavirus-tracker-api) api (work in progress)
 
 ### Screenshots
-<img width=350 src="/assets/Screenshot1_v0.1.200405.jpg" /> <img width=350 src="/assets/Screenshot3_v0.0.20200317.jpg" />
+<img width=250 src="/assets/Screenshot1_v0.1.200405.jpg" /> <img width=250 src="/assets/Screenshot3_v0.1.200405.jpg" /> <img width=250 src="/assets/Screenshot4_v0.1.200405.jpg" />
 
 For more checkout [Assets folder](/assets)
 
