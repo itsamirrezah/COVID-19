@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.github.mikephil.charting.animation.Easing
+import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
@@ -30,6 +31,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private lateinit var areaCaseModel: AreaCasesModel
     private lateinit var lineChart: LineChart
     private lateinit var pieChart: PieChart
+    private lateinit var barChart: BarChart
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +59,89 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
             getAreaCases()
             setupPieChart(view)
+            setupBarChart(view)
         }
+    }
+
+    private fun setupBarChart(view: View) {
+        barChart = view.findViewById(R.id.barChart)
+        barChart.setNoDataTextColor(ContextCompat.getColor(context!!, R.color.grey_300))
+        barChart.description.isEnabled = false
+        barChart.setDrawGridBackground(false)
+        barChart.setDrawValueAboveBar(false)
+        barChart.isHighlightFullBarEnabled = true
+
+        //y-axis
+        val yAxis = barChart.axisLeft
+        //y-axis value formatter
+        yAxis.valueFormatter = CompactDigitValueFormatter()
+        yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        yAxis.axisMinimum = 0f
+
+        //x-axis
+        val xAxis = barChart.xAxis
+        xAxis.axisMinimum = 0f
+        xAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        //disable dual y-axes
+        barChart.axisRight.isEnabled = false
+    }
+
+    private fun setupBarData() {
+        val entries = mutableListOf<BarEntry>()
+
+        //list.indices: returns an [IntRange] of the valid indices for this collection
+        for (count in areaCaseModel.confirmedHistory.indices) {
+
+            val dayCases = dailyData(count, areaCaseModel.confirmedHistory)
+            val dayDeaths = dailyData(count, areaCaseModel.deathHistory)
+            val dayRecovered = dailyData(count, areaCaseModel.recoveredHistory)
+
+            entries.add(
+                BarEntry(
+                    count.toFloat(),
+                    floatArrayOf(dayCases.toFloat(), dayDeaths.toFloat(), dayRecovered.toFloat())
+                )
+            )
+        }
+
+        val barDataSet = BarDataSet(entries, "")
+        //don't draw values on bars
+        barDataSet.setDrawValues(false)
+        barDataSet.setDrawIcons(false)
+        //bar colors
+        barDataSet.colors = mutableListOf(
+            ContextCompat.getColor(context!!, R.color.yellow_A700), //confirmed
+            ContextCompat.getColor(context!!, R.color.red_A700), //deaths
+            ContextCompat.getColor(context!!, R.color.green_A700) //recovered
+        )
+
+        barChart.data = BarData(barDataSet)
+        //show 15 days of data
+        barChart.setVisibleXRangeMaximum(15f)
+        //move the viewport to right side of the chart
+        barChart.moveViewToX(barChart.xChartMax)
+
+        barChart.invalidate()
+        barChart.animateY(1000)
+
+        //x-axis value formatter
+        barChart.xAxis.valueFormatter = DateValueFormatter(
+            areaCaseModel.confirmedHistory.last().first,
+            areaCaseModel.confirmedHistory.size
+        )
+
+
+    }
+
+    private fun dailyData(count: Int, history: List<Pair<LocalDate, Int>>): Int {
+        if (history.isNullOrEmpty())
+            return 0
+        //if its the first data of the list
+        return if (count == 0)
+            history[count].second
+        else
+            history[count].second - history[count - 1].second
     }
 
     private fun setupPieChart(view: View) {
@@ -98,7 +182,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             PieEntry(activeCases.toFloat(), "Active"),
             PieEntry(areaCaseModel.latestDeaths.toFloat(), "Deaths"),
             PieEntry(areaCaseModel.latestRecovered.toFloat(), "Recovered")
-        //do not display entries with no values
+            //do not display entries with no values
         ).filter { it.value != 0f }
 
         //create a pie data set with mutable list of pie entries
@@ -180,6 +264,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 setupLineData()
+                setupBarData()
             }, {
                 print(it.message)
             })
