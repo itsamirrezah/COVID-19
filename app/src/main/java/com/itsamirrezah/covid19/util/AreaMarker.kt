@@ -12,6 +12,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.clustering.Cluster
 import com.google.maps.android.clustering.ClusterManager
@@ -64,6 +65,10 @@ class AreaMarker(
         clusterIconGen.setContentView(clusterRootView)
         markerIconGen.setBackground(transparentDrawable)
         markerIconGen.setContentView(markerRootView)
+    }
+
+    override fun onClusterItemRendered(clusterItem: AreaCasesModel?, marker: Marker?) {
+        marker!!.tag = clusterItem
     }
 
     override fun onBeforeClusterItemRendered(item: AreaCasesModel?, markerOptions: MarkerOptions?) {

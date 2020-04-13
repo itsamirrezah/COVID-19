@@ -13,6 +13,7 @@ import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.util.AreaMarker
+import com.itsamirrezah.covid19.util.ClusterItemWindowInfo
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -47,14 +48,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
         mMap.setOnCameraIdleListener(mClusterManager)
         mMap.setOnMarkerClickListener(mClusterManager)
-        mClusterManager.setOnClusterItemClickListener {
-            val bottomSheet = AreaDetailFragment()
-            val bundle = Bundle()
-            bundle.putParcelable("AREA_CASE_MODEL_EXTRA", it)
-            bottomSheet.arguments = bundle
-            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
-            true
-        }
     }
 
     private fun setupMap() {
@@ -70,6 +63,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 R.raw.mapstyle_dark
             )
         mMap.setMapStyle(mapStyleOption)
+        mMap.setInfoWindowAdapter(ClusterItemWindowInfo(applicationContext))
+        mMap.setOnInfoWindowClickListener {
+            val bottomSheet = AreaDetailFragment()
+            val bundle = Bundle()
+            bundle.putParcelable("AREA_CASE_MODEL_EXTRA", it!!.tag as AreaCasesModel)
+            bottomSheet.arguments = bundle
+            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+        }
+
     }
 
     private fun getAllCases() {
