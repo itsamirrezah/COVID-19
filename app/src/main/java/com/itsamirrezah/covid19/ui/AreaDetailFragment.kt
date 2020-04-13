@@ -19,9 +19,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
-import com.itsamirrezah.covid19.util.CompactDigitValueFormatter
-import com.itsamirrezah.covid19.util.DateValueFormatter
-import com.itsamirrezah.covid19.util.Utils
+import com.itsamirrezah.covid19.util.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import org.threeten.bp.LocalDate
@@ -70,14 +68,19 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barChart.setDrawGridBackground(false)
         barChart.setDrawValueAboveBar(false)
         barChart.isHighlightFullBarEnabled = true
-
+        //custom marker
+        val markerView =
+            MarkerView(context!!, R.layout.chart_marker_view)
+        markerView.chartView = barChart
+        barChart.marker = markerView
         //y-axis
         val yAxis = barChart.axisLeft
         //y-axis value formatter
         yAxis.valueFormatter = CompactDigitValueFormatter()
         yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
         yAxis.axisMinimum = 0f
-
+        //add extra space over the maximum bar
+        yAxis.spaceTop = 30f
         //x-axis
         val xAxis = barChart.xAxis
         xAxis.axisMinimum = 0f
@@ -85,6 +88,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         //disable dual y-axes
         barChart.axisRight.isEnabled = false
+        barChart.legend.isEnabled = false
     }
 
     private fun setupBarData() {
@@ -100,7 +104,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
                         day.second.first.toFloat(),
                         day.second.second.toFloat(),
                         day.second.third.toFloat()
-                    )
+                    ),
+                    MarkerData(day.first, day.second.first, R.color.yellow_A700)
                 )
             )
         }
@@ -118,13 +123,12 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         barChart.data = BarData(barDataSet)
         //show 15 days of data
-        barChart.setVisibleXRangeMaximum(15f)
+        barChart.setVisibleXRangeMaximum(30f)
         //move the viewport to right side of the chart
         barChart.moveViewToX(barChart.xChartMax)
 
         barChart.invalidate()
         barChart.animateY(1000)
-
         //x-axis value formatter
         barChart.xAxis.valueFormatter = DateValueFormatter(
             areaCaseModel.timelines.last().first,
@@ -132,16 +136,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         )
 
 
-    }
-
-    private fun dailyData(count: Int, history: List<Pair<LocalDate, Int>>): Int {
-        if (history.isNullOrEmpty())
-            return 0
-        //if its the first data of the list
-        return if (count == 0)
-            history[count].second
-        else
-            history[count].second - history[count - 1].second
     }
 
     private fun setupPieChart(view: View) {
@@ -190,7 +184,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         dataset.sliceSpace = 2f
         dataset.selectionShift = 5f
-
         //set colors for each slice of pie chart
         dataset.colors = listOf(
             ContextCompat.getColor(context!!, R.color.yellow_A700),
@@ -282,6 +275,11 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         lineChart.setTouchEnabled(true)
         //no grid background
         lineChart.setDrawGridBackground(false)
+        //custom marker
+        val barMarker =
+            MarkerView(context!!, R.layout.chart_marker_view)
+        barMarker.chartView = lineChart
+        lineChart.marker = barMarker
 
         setupLineAxis()
         setupLineLegend()
@@ -295,16 +293,15 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         // vertical grid lines
         xAxis.enableGridDashedLine(10f, 5f, 0f)
         xAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
-
         //y-axis style
         val yAxis = lineChart.axisLeft
         // disable dual y-axis
         lineChart.axisRight.isEnabled = false
-
         // horizontal grid lines
         yAxis.enableGridDashedLine(10f, 5f, 0f)
-
         yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        yAxis.spaceTop = 35f
+
     }
 
     private fun setupLineLegend() {
@@ -326,15 +323,18 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         for ((count, value) in areaCaseModel.timelines.withIndex()) {
             val confirmedEntry = Entry(
                 count.toFloat(),
-                value.second.first.toFloat()
+                value.second.first.toFloat(),
+                MarkerData(value.first, value.second.first, R.color.yellow_A700)
             )
             val deathsEntry = Entry(
                 count.toFloat(),
-                value.second.second.toFloat()
+                value.second.second.toFloat(),
+                MarkerData(value.first, value.second.second, R.color.red_A700)
             )
             val recoveredEntry = Entry(
                 count.toFloat(),
-                value.second.third.toFloat()
+                value.second.third.toFloat(),
+                MarkerData(value.first, value.second.third, R.color.green_A700)
             )
             confirmedEntries.add(confirmedEntry)
             deathEntries.add(deathsEntry)
@@ -345,7 +345,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             setupLineData(confirmedEntries, "confirmed", R.color.yellow_700)
         val deathSet: LineDataSet = setupLineData(deathEntries, "deaths", R.color.red_A700)
         val recoveredSet: LineDataSet =
-            setupLineData(recoveredEntries, "recovered", R.color.green_400)
+            setupLineData(recoveredEntries, "recovered", R.color.green_A700)
 
 
         lineChart.data = LineData(
@@ -353,7 +353,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
                 confirmedSet, deathSet, recoveredSet
             ) as List<ILineDataSet>
         )
-
+        lineChart.setVisibleXRangeMaximum(30f)
+        lineChart.moveViewToX(lineChart.xChartMax)
         // draw points over time
         lineChart.animateX(500)
         //setup x-axis value formatter: display dates (Mar 13)
