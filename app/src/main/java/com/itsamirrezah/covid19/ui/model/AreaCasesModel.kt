@@ -20,9 +20,9 @@ data class AreaCasesModel(
 
 ) : ClusterItem, Parcelable {
 
-    lateinit var confirmedHistory: List<Pair<LocalDate, Int>>
-    lateinit var deathHistory: List<Pair<LocalDate, Int>>
-    lateinit var recoveredHistory: List<Pair<LocalDate, Int>>
+    //timeline & daily data items format: (Date,(confirmed,death,recovered))
+    lateinit var timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>
+    lateinit var dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>
 
     override fun getSnippet(): String {
         return province

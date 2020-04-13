@@ -89,18 +89,18 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
     private fun setupBarData() {
         val entries = mutableListOf<BarEntry>()
-
         //list.indices: returns an [IntRange] of the valid indices for this collection
-        for (count in areaCaseModel.confirmedHistory.indices) {
-
-            val dayCases = dailyData(count, areaCaseModel.confirmedHistory)
-            val dayDeaths = dailyData(count, areaCaseModel.deathHistory)
-            val dayRecovered = dailyData(count, areaCaseModel.recoveredHistory)
+        for (count in areaCaseModel.dailyTimelines.indices) {
+            val day = areaCaseModel.dailyTimelines[count]
 
             entries.add(
                 BarEntry(
                     count.toFloat(),
-                    floatArrayOf(dayCases.toFloat(), dayDeaths.toFloat(), dayRecovered.toFloat())
+                    floatArrayOf(
+                        day.second.first.toFloat(),
+                        day.second.second.toFloat(),
+                        day.second.third.toFloat()
+                    )
                 )
             )
         }
@@ -127,8 +127,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         //x-axis value formatter
         barChart.xAxis.valueFormatter = DateValueFormatter(
-            areaCaseModel.confirmedHistory.last().first,
-            areaCaseModel.confirmedHistory.size
+            areaCaseModel.timelines.last().first,
+            areaCaseModel.timelines.size
         )
 
 
@@ -222,42 +222,45 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             .getAreaById(areaCaseModel.id)
             //map data model to ui model
             .map {
-                val confirmedTimeline = mutableListOf<Pair<LocalDate, Int>>()
-                val deathTimeline = mutableListOf<Pair<LocalDate, Int>>()
-                val recoveredTimeline = mutableListOf<Pair<LocalDate, Int>>()
+                val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
+                val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
+                    mutableListOf()
 
-                for (timeline in it.area.timelines.confirmed.timeline) {
+                for ((index, timeline) in it.area.timelines.confirmed.timeline.toList().withIndex()) {
                     //gather information about area since first case confirmed
-                    if (timeline.value <= 0)
+                    if (timeline.second <= 0)
                         continue
-                    confirmedTimeline.add(
-                        Pair(Utils.toLocalDate(timeline.key), timeline.value)
+
+                    val confirmed = timeline.second
+                    val deaths = it.area.timelines.deaths.timeline[timeline.first] ?: 0
+                    val recovered = it.area.timelines.recovered.timeline[timeline.first] ?: 0
+                    val localDate = Utils.toLocalDate(timeline.first)
+
+                    timelines.add(
+                        Pair(
+                            localDate, Triple(confirmed!!, deaths, recovered)
+                        )
+                    )
+
+                    val dailyConfirmed =
+                        confirmed - it.area.timelines.confirmed.timeline.toList()
+                            .getOrElse(index - 1) { Pair("", 0) }.second
+                    val dailyDeaths =
+                        deaths - it.area.timelines.deaths.timeline.toList()
+                            .getOrElse(index - 1) { Pair("", 0) }.second
+                    val dailyRecovered =
+                        recovered - it.area.timelines.recovered.timeline.toList()
+                            .getOrElse(index - 1) { Pair("", 0) }.second
+
+                    dailyTimeline.add(
+                        Pair(
+                            localDate, Triple(dailyConfirmed, dailyDeaths, dailyRecovered)
+                        )
                     )
                 }
 
-                for (timeline in it.area.timelines.deaths.timeline) {
-                    val date = Utils.toLocalDate(timeline.key)
-
-                    if (date.isBefore(confirmedTimeline.first().first))
-                        continue
-                    deathTimeline.add(
-                        Pair(Utils.toLocalDate(timeline.key), timeline.value)
-                    )
-                }
-
-                for (timeline in it.area.timelines.recovered.timeline) {
-                    val date = Utils.toLocalDate(timeline.key)
-                    if (date.isBefore(confirmedTimeline.first().first))
-                        continue
-                    recoveredTimeline.add(
-                        Pair(Utils.toLocalDate(timeline.key), timeline.value)
-                    )
-                }
-
-                areaCaseModel.confirmedHistory = confirmedTimeline
-                areaCaseModel.deathHistory = deathTimeline
-                areaCaseModel.recoveredHistory = recoveredTimeline
-
+                areaCaseModel.timelines = timelines
+                areaCaseModel.dailyTimelines = dailyTimeline
                 areaCaseModel
             }
             .subscribeOn(Schedulers.io())
@@ -320,19 +323,22 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val deathEntries = arrayListOf<Entry>()
         val recoveredEntries = arrayListOf<Entry>()
 
-        for ((count, value) in areaCaseModel.confirmedHistory.withIndex()) {
-            val entry = Entry(count.toFloat(), value.second.toFloat())
-            confirmedEntries.add(entry)
-        }
-
-        for ((count, value) in areaCaseModel.deathHistory.withIndex()) {
-            val entry = Entry(count.toFloat(), value.second.toFloat())
-            deathEntries.add(entry)
-        }
-
-        for ((count, value) in areaCaseModel.recoveredHistory.withIndex()) {
-            val entry = Entry(count.toFloat(), value.second.toFloat())
-            recoveredEntries.add(entry)
+        for ((count, value) in areaCaseModel.timelines.withIndex()) {
+            val confirmedEntry = Entry(
+                count.toFloat(),
+                value.second.first.toFloat()
+            )
+            val deathsEntry = Entry(
+                count.toFloat(),
+                value.second.second.toFloat()
+            )
+            val recoveredEntry = Entry(
+                count.toFloat(),
+                value.second.third.toFloat()
+            )
+            confirmedEntries.add(confirmedEntry)
+            deathEntries.add(deathsEntry)
+            recoveredEntries.add(recoveredEntry)
         }
 
         val confirmedSet: LineDataSet =
@@ -352,8 +358,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         lineChart.animateX(500)
         //setup x-axis value formatter: display dates (Mar 13)
         lineChart.xAxis.valueFormatter = DateValueFormatter(
-            areaCaseModel.confirmedHistory.last().first,
-            areaCaseModel.confirmedHistory.size
+            areaCaseModel.timelines.last().first,
+            areaCaseModel.timelines.size
         )
 
         //setup y-axis value formatter: display values in short compact format (12.5 K)
