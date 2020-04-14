@@ -5,9 +5,10 @@ import org.threeten.bp.LocalDate
 
 class MarkerData(
     localDate: LocalDate,
-    val value: Int,
+    value: Int,
     val color: Int
 ) {
     val dateString: String =
         Utils.shortRelativeDate(localDate)
+    val valueString = Utils.toNumberSeparator(value.toLong())
 }

@@ -54,10 +54,11 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         arguments?.let {
             areaCaseModel = it.getParcelable("AREA_CASE_MODEL_EXTRA")!!
             view.findViewById<TextView>(R.id.tvCountry).text = areaCaseModel.country
-            view.findViewById<TextView>(R.id.tvConfirmed).text = areaCaseModel.latestConfirmed
-            view.findViewById<TextView>(R.id.tvDeaths).text = areaCaseModel.latestDeaths
-            if (areaCaseModel.latestRecovered.toInt() > 0)
-                view.findViewById<TextView>(R.id.tvRecovered).text = areaCaseModel.latestRecovered
+            view.findViewById<TextView>(R.id.tvConfirmed).text = areaCaseModel.confirmedString
+            view.findViewById<TextView>(R.id.tvDeaths).text = areaCaseModel.deathString
+            if (areaCaseModel.recovered > 0)
+                view.findViewById<TextView>(R.id.tvRecovered).text =
+                    areaCaseModel.recoveredString
 
             getAreaCases()
             setupPieChart(view)
@@ -174,12 +175,12 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun setupPieData() {
         //active cases = confirmed cases - (deaths + recovered)
         val activeCases =
-            areaCaseModel.latestConfirmed.toLong() - (areaCaseModel.latestDeaths.toLong() + areaCaseModel.latestRecovered.toLong())
+            areaCaseModel.confirmed.toLong() - (areaCaseModel.deaths.toLong() + areaCaseModel.recovered.toLong())
 
         val entries = mutableListOf(
             PieEntry(activeCases.toFloat(), "Active"),
-            PieEntry(areaCaseModel.latestDeaths.toFloat(), "Deaths"),
-            PieEntry(areaCaseModel.latestRecovered.toFloat(), "Recovered")
+            PieEntry(areaCaseModel.deaths.toFloat(), "Deaths"),
+            PieEntry(areaCaseModel.recovered.toFloat(), "Recovered")
             //do not display entries with no values
         ).filter { it.value != 0f }
 

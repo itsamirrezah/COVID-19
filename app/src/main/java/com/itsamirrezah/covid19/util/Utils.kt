@@ -6,6 +6,7 @@ import androidx.core.graphics.ColorUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
 import java.text.DecimalFormat
+import java.text.NumberFormat
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.log10
@@ -44,6 +45,10 @@ class Utils {
                 DecimalFormat("0.#").format(number / 1000.0.pow(exp.toDouble())),
                 "KM"[exp - 1]
             )
+        }
+
+        fun toNumberSeparator(value : Long): String{
+            return NumberFormat.getNumberInstance().format(value)
         }
 
         fun toLocalDate(utcDate: String): LocalDate {

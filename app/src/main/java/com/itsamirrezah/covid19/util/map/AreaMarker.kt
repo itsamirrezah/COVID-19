@@ -73,7 +73,7 @@ class AreaMarker(
     }
 
     override fun onBeforeClusterItemRendered(item: AreaCasesModel?, markerOptions: MarkerOptions?) {
-        tvCaseMarker.text = item!!.latestConfirmed
+        tvCaseMarker.text = item!!.confirmedString
         val icon = markerIconGen.makeIcon()
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
@@ -82,7 +82,7 @@ class AreaMarker(
         cluster: Cluster<AreaCasesModel>?,
         markerOptions: MarkerOptions?
     ) {
-        val clusterCasesCount = cluster!!.items.sumBy { it.latestConfirmed.toInt() }
+        val clusterCasesCount = cluster!!.items.sumBy { it.confirmed.toInt() }
         tvCaseCluster.text = "+".plus(
             Utils.randDigit(
                 clusterCasesCount

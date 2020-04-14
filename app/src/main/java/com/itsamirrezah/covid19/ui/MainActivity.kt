@@ -95,9 +95,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     it.country,
                     it.countryCode,
                     it.province,
-                    it.latest.confirmed.toString(),
-                    it.latest.deaths.toString(),
-                    it.latest.recovered.toString()
+                    it.latest.confirmed,
+                    it.latest.deaths,
+                    it.latest.recovered
                 )
             }
             .toList()
