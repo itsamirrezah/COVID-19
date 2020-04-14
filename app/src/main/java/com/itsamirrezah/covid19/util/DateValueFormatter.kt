@@ -10,7 +10,7 @@ class DateValueFormatter(
 ) : ValueFormatter() {
 
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-        val date = Utils.minusDateByInt(lastDate, recordedSize - value.toLong())
+        val date = Utils.minusDateByInt(lastDate, (recordedSize - 1) - value.toLong())
         return Utils.shortRelativeDate(date!!)
     }
 }

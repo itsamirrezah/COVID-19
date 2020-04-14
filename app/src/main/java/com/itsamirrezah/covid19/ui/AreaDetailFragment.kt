@@ -79,6 +79,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         yAxis.valueFormatter = CompactDigitValueFormatter()
         yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
         yAxis.axisMinimum = 0f
+        yAxis.enableGridDashedLine(10f, 5f, 0f)
         //add extra space over the maximum bar
         yAxis.spaceTop = 30f
         //x-axis
@@ -86,6 +87,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         xAxis.axisMinimum = 0f
         xAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
         xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.enableGridDashedLine(10f, 5f, 0f)
         //disable dual y-axes
         barChart.axisRight.isEnabled = false
         barChart.legend.isEnabled = false
@@ -120,7 +122,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             ContextCompat.getColor(context!!, R.color.red_A700), //deaths
             ContextCompat.getColor(context!!, R.color.green_A700) //recovered
         )
-
+        barDataSet.highLightColor = ContextCompat.getColor(context!!, R.color.grey_100)
         barChart.data = BarData(barDataSet)
         //show 15 days of data
         barChart.setVisibleXRangeMaximum(30f)
@@ -134,8 +136,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             areaCaseModel.timelines.last().first,
             areaCaseModel.timelines.size
         )
-
-
     }
 
     private fun setupPieChart(view: View) {
@@ -276,10 +276,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         //no grid background
         lineChart.setDrawGridBackground(false)
         //custom marker
-        val barMarker =
+        val markerView =
             MarkerView(context!!, R.layout.chart_marker_view)
-        barMarker.chartView = lineChart
-        lineChart.marker = barMarker
+        markerView.chartView = lineChart
+        lineChart.marker = markerView
 
         setupLineAxis()
         setupLineLegend()
@@ -299,9 +299,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         lineChart.axisRight.isEnabled = false
         // horizontal grid lines
         yAxis.enableGridDashedLine(10f, 5f, 0f)
-        yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
         yAxis.spaceTop = 35f
-
+        yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
     }
 
     private fun setupLineLegend() {
@@ -362,7 +361,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             areaCaseModel.timelines.last().first,
             areaCaseModel.timelines.size
         )
-
         //setup y-axis value formatter: display values in short compact format (12.5 K)
         lineChart.axisLeft.valueFormatter = CompactDigitValueFormatter()
     }
@@ -370,6 +368,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun setupLineData(entries: List<Entry>, text: String, color: Int): LineDataSet {
 
         val dataset = LineDataSet(entries, text)
+        dataset.mode = LineDataSet.Mode.CUBIC_BEZIER
         //line & circle point colors
         dataset.color = ContextCompat.getColor(context!!, color)
         dataset.setCircleColor(ContextCompat.getColor(context!!, color))
