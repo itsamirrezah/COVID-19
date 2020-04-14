@@ -15,18 +15,26 @@ data class AreaCasesModel(
     val country: String,
     val countryCode: String,
     val province: String,
-    val confirmed: Long,
-    val deaths: Long,
-    val recovered: Long
-
+    var confirmed: Long,
+    var deaths: Long,
+    var recovered: Long,
+    //timeline & daily data items format: (Date,(confirmed,death,recovered))
+    var timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>? = null,
+    var dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>? = null
 ) : ClusterItem, Parcelable {
 
     val confirmedString = Utils.toNumberSeparator(confirmed)
     val deathString = Utils.toNumberSeparator(deaths)
     val recoveredString = Utils.toNumberSeparator(recovered)
-    //timeline & daily data items format: (Date,(confirmed,death,recovered))
-    lateinit var timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>
-    lateinit var dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>
+
+    constructor(
+        confirmed: Long,
+        deaths: Long,
+        recovered: Long,
+        timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
+        dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
+        country: String = "Wordwide"
+    ) : this(0, .0, .0, country, "", "", confirmed, deaths, recovered, timelines, dailyTimelines)
 
     override fun getSnippet(): String {
         return province

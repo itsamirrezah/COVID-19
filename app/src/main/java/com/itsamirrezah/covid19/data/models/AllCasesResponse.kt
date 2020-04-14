@@ -5,6 +5,8 @@ import com.google.gson.internal.LinkedTreeMap
 
 
 data class AllCasesResponse(
+    @SerializedName("latest")
+    val latest: Latest,
     @SerializedName("locations")
     val areas: List<Area>
 )

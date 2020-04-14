@@ -50,7 +50,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupLineChart(view)
         arguments?.let {
             areaCaseModel = it.getParcelable("AREA_CASE_MODEL_EXTRA")!!
             view.findViewById<TextView>(R.id.tvCountry).text = areaCaseModel.country
@@ -59,10 +58,17 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             if (areaCaseModel.recovered > 0)
                 view.findViewById<TextView>(R.id.tvRecovered).text =
                     areaCaseModel.recoveredString
-
-            getAreaCases()
             setupPieChart(view)
+            setupLineChart(view)
             setupBarChart(view)
+
+            if (areaCaseModel.timelines == null) {
+                getAreaCases()
+            } else {
+                setupLineData()
+                setupBarData()
+            }
+
         }
     }
 
@@ -101,8 +107,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun setupBarData() {
         val entries = mutableListOf<BarEntry>()
         //list.indices: returns an [IntRange] of the valid indices for this collection
-        for (count in areaCaseModel.dailyTimelines.indices) {
-            val day = areaCaseModel.dailyTimelines[count]
+        for (count in areaCaseModel.dailyTimelines!!.indices) {
+            val day = areaCaseModel.dailyTimelines!![count]
 
             entries.add(
                 BarEntry(
@@ -138,8 +144,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barChart.animateY(1000)
         //x-axis value formatter
         barChart.xAxis.valueFormatter = DateValueFormatter(
-            areaCaseModel.timelines.last().first,
-            areaCaseModel.timelines.size
+            areaCaseModel.timelines!!.last().first,
+            areaCaseModel.timelines!!.size
         )
     }
 
@@ -324,7 +330,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val deathEntries = arrayListOf<Entry>()
         val recoveredEntries = arrayListOf<Entry>()
 
-        for ((count, value) in areaCaseModel.timelines.withIndex()) {
+        for ((count, value) in areaCaseModel.timelines!!.withIndex()) {
             val confirmedEntry = Entry(
                 count.toFloat(),
                 value.second.first.toFloat(),
@@ -375,8 +381,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         lineChart.animateX(500)
         //setup x-axis value formatter: display dates (Mar 13)
         lineChart.xAxis.valueFormatter = DateValueFormatter(
-            areaCaseModel.timelines.last().first,
-            areaCaseModel.timelines.size
+            areaCaseModel.timelines!!.last().first,
+            areaCaseModel.timelines!!.size
         )
         //setup y-axis value formatter: display values in short compact format (12.5 K)
         lineChart.axisLeft.valueFormatter =
