@@ -1,4 +1,4 @@
-package com.itsamirrezah.covid19.util
+package com.itsamirrezah.covid19.util.map
 
 import android.content.Context
 import android.content.res.ColorStateList
@@ -20,6 +20,7 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.google.maps.android.ui.IconGenerator
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.util.Utils
 import kotlin.math.min
 
 
@@ -82,7 +83,11 @@ class AreaMarker(
         markerOptions: MarkerOptions?
     ) {
         val clusterCasesCount = cluster!!.items.sumBy { it.latestConfirmed.toInt() }
-        tvCaseCluster.text = "+".plus(Utils.randDigit(clusterCasesCount))
+        tvCaseCluster.text = "+".plus(
+            Utils.randDigit(
+                clusterCasesCount
+            )
+        )
         clusterRootView.findViewById<FrameLayout>(R.id.overlay).backgroundTintList =
             ColorStateList.valueOf(getClusterOverlayColor(clusterCasesCount))
         val icon = clusterIconGen.makeIcon()
@@ -104,7 +109,7 @@ class AreaMarker(
             boundBuilder.include(item.position)
             clusterItemsCount++
         }
-        if (clusterItemsCount > 1)
+        if (clusterItemsCount > 3)
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 100))
 
         return true
@@ -112,6 +117,11 @@ class AreaMarker(
 
     private fun getClusterOverlayColor(clusterCases: Int): Int {
         val ratio = min(clusterCases / 40000f, 1f)
-        return Utils.blendColors(context, R.color.overlay_light_30, R.color.overlay_dark_40, ratio)
+        return Utils.blendColors(
+            context,
+            R.color.overlay_light_30,
+            R.color.overlay_dark_40,
+            ratio
+        )
     }
 }

@@ -12,8 +12,8 @@ import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
-import com.itsamirrezah.covid19.util.AreaMarker
-import com.itsamirrezah.covid19.util.ClusterItemWindowInfo
+import com.itsamirrezah.covid19.util.map.AreaMarker
+import com.itsamirrezah.covid19.util.map.ClusterItemInfoWindow
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -45,7 +45,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun setupClusterManager() {
         mClusterManager = ClusterManager(this, mMap)
         mClusterManager.algorithm.maxDistanceBetweenClusteredItems = 100
-        mClusterManager.renderer = AreaMarker(this, mMap, mClusterManager)
+        mClusterManager.renderer =
+            AreaMarker(this, mMap, mClusterManager)
         mMap.setOnCameraIdleListener(mClusterManager)
         mMap.setOnMarkerClickListener(mClusterManager)
     }
@@ -63,7 +64,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 R.raw.mapstyle_dark
             )
         mMap.setMapStyle(mapStyleOption)
-        mMap.setInfoWindowAdapter(ClusterItemWindowInfo(applicationContext))
+        mMap.setInfoWindowAdapter(
+            ClusterItemInfoWindow(
+                applicationContext
+            )
+        )
         mMap.setOnInfoWindowClickListener {
             val bottomSheet = AreaDetailFragment()
             val bundle = Bundle()

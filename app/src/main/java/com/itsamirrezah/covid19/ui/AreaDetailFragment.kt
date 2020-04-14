@@ -19,7 +19,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
-import com.itsamirrezah.covid19.util.*
+import com.itsamirrezah.covid19.ui.model.MarkerData
+import com.itsamirrezah.covid19.util.Utils
+import com.itsamirrezah.covid19.util.chart.CompactDigitValueFormatter
+import com.itsamirrezah.covid19.util.chart.DateValueFormatter
+import com.itsamirrezah.covid19.util.chart.MarkerView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import org.threeten.bp.LocalDate
@@ -323,17 +327,29 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             val confirmedEntry = Entry(
                 count.toFloat(),
                 value.second.first.toFloat(),
-                MarkerData(value.first, value.second.first, R.color.yellow_A700)
+                MarkerData(
+                    value.first,
+                    value.second.first,
+                    R.color.yellow_A700
+                )
             )
             val deathsEntry = Entry(
                 count.toFloat(),
                 value.second.second.toFloat(),
-                MarkerData(value.first, value.second.second, R.color.red_A700)
+                MarkerData(
+                    value.first,
+                    value.second.second,
+                    R.color.red_A700
+                )
             )
             val recoveredEntry = Entry(
                 count.toFloat(),
                 value.second.third.toFloat(),
-                MarkerData(value.first, value.second.third, R.color.green_A700)
+                MarkerData(
+                    value.first,
+                    value.second.third,
+                    R.color.green_A700
+                )
             )
             confirmedEntries.add(confirmedEntry)
             deathEntries.add(deathsEntry)
@@ -362,7 +378,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             areaCaseModel.timelines.size
         )
         //setup y-axis value formatter: display values in short compact format (12.5 K)
-        lineChart.axisLeft.valueFormatter = CompactDigitValueFormatter()
+        lineChart.axisLeft.valueFormatter =
+            CompactDigitValueFormatter()
     }
 
     private fun setupLineData(entries: List<Entry>, text: String, color: Int): LineDataSet {

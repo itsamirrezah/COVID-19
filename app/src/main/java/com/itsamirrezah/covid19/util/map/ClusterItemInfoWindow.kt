@@ -1,4 +1,4 @@
-package com.itsamirrezah.covid19.util
+package com.itsamirrezah.covid19.util.map
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -9,7 +9,7 @@ import com.google.android.gms.maps.model.Marker
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 
-class ClusterItemWindowInfo(
+class ClusterItemInfoWindow(
     context: Context
 ) : GoogleMap.InfoWindowAdapter {
 

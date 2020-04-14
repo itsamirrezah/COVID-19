@@ -3,7 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:alpha="0.8"
-    android:background="@drawable/bg_marker"
+    android:background="@drawable/bg_circle"
     android:backgroundTint="@color/grey_400"
     android:contentDescription="@null">
 
@@ -12,13 +12,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="1dp"
-        android:background="@drawable/bg_marker">
+        android:background="@drawable/bg_circle">
 
         <FrameLayout
             android:id="@+id/overlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_marker">
+            android:background="@drawable/bg_circle">
 
             <com.google.maps.android.ui.SquareTextView
                 android:id="@+id/amu_text"

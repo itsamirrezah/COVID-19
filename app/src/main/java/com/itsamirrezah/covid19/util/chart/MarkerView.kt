@@ -1,4 +1,4 @@
-package com.itsamirrezah.covid19.util
+package com.itsamirrezah.covid19.util.chart
 
 import android.content.Context
 import android.content.res.ColorStateList
@@ -10,6 +10,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
 import com.itsamirrezah.covid19.R
+import com.itsamirrezah.covid19.ui.model.MarkerData
 
 class MarkerView(
     context: Context,
