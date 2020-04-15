@@ -1,9 +1,11 @@
 package com.itsamirrezah.covid19.ui
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -16,8 +18,12 @@ import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.util.Utils
+import com.itsamirrezah.covid19.util.drawer.DrawerItem
 import com.itsamirrezah.covid19.util.map.AreaMarker
 import com.itsamirrezah.covid19.util.map.ClusterItemInfoWindow
+import com.mikepenz.materialdrawer.holder.StringHolder
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
+import com.mikepenz.materialdrawer.widget.MaterialDrawerSliderView
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -27,6 +33,7 @@ import org.threeten.bp.LocalDate
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var fab: FloatingActionButton
+    private lateinit var slider: MaterialDrawerSliderView
     private lateinit var mMap: GoogleMap
     private lateinit var mClusterManager: ClusterManager<AreaCasesModel>
     private val compositeDisposable = CompositeDisposable()
@@ -44,6 +51,31 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         fab.setOnClickListener {
             showAreaDetailFragment(world)
         }
+        setupSliderView()
+    }
+
+    private fun setupSliderView() {
+        slider = findViewById(R.id.sliderView)
+        //static item
+        val headerItem = PrimaryDrawerItem()
+        headerItem.textColor =
+            ColorStateList.valueOf(ContextCompat.getColor(applicationContext, R.color.grey_200))
+        headerItem.name = StringHolder("Countries")
+        slider.itemAdapter.add(headerItem)
+
+        //setup slider item click listener
+        slider.onDrawerItemClickListener = { _v, drawerItem, _position ->
+            if (drawerItem is DrawerItem) {
+                //relocate camera to selected area
+                animateMapCamera(drawerItem.areaCasesModel.latLng!!, 5f)
+            }
+            false
+        }
+    }
+
+    private fun animateMapCamera(latLng: LatLng, zoom: Float) {
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
+
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -98,8 +130,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .map {
                 AreaCasesModel(
                     it.id,
-                    it.coordinates.lat.toDouble(),
-                    it.coordinates.lon.toDouble(),
+                    LatLng(it.coordinates.lat.toDouble(),it.coordinates.lon.toDouble()),
                     it.country,
                     it.countryCode,
                     it.province,
@@ -115,12 +146,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 mClusterManager.clearItems()
                 mClusterManager.addItems(it)
                 mClusterManager.cluster()
+                updateSliderItems(it)
                 makeWorld()
             }, {
                 print(it.message)
             })
 
         compositeDisposable.add(requestAllCases)
+    }
+
+    //update slider items
+    private fun updateSliderItems(areas: MutableList<AreaCasesModel>) {
+        areas.sortByDescending { area -> area.confirmed }
+        for (area in areas)
+            slider.itemAdapter.add(DrawerItem(area))
     }
 
     private fun makeWorld() {

@@ -10,8 +10,7 @@ import org.threeten.bp.LocalDate
 @Parcelize
 data class AreaCasesModel(
     val id: Int,
-    val lat: Double,
-    val lon: Double,
+    val latLng: LatLng?,
     val country: String,
     val countryCode: String,
     val province: String,
@@ -34,7 +33,7 @@ data class AreaCasesModel(
         timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
         dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
         country: String = "Wordwide"
-    ) : this(0, .0, .0, country, "", "", confirmed, deaths, recovered, timelines, dailyTimelines)
+    ) : this(0, null, country, "", "", confirmed, deaths, recovered, timelines, dailyTimelines)
 
     override fun getSnippet(): String {
         return province
@@ -45,6 +44,6 @@ data class AreaCasesModel(
     }
 
     override fun getPosition(): LatLng {
-        return LatLng(lat, lon)
+        return latLng!!
     }
 }
