@@ -77,4 +77,7 @@ dependencies {
 
     //MaterialDrawer
     implementation "com.mikepenz:materialdrawer:8.0.1"
+
+    //Markwon
+    implementation  "io.noties.markwon:core:4.3.1"
 }

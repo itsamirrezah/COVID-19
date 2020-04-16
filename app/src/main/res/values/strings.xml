@@ -1,4 +1,42 @@
 <resources>
     <string name="app_name">COVID-19 Tracker</string>
     <string name="title_main_activity">Main</string>
+    <string name="app_info_title">
+        Android application for tracking the COVID-19 outbreak around the world with [coronavirus-tracker](https://github.com/ExpDev07/coronavirus-tracker-api) API.
+    </string>
+
+    <string name="app_info_description">
+        This application is open source at\n\n[https://github.com/itsamirrezah/COVID-19](https://github.com/itsamirrezah/COVID-19)
+    </string>
+
+    <string name="app_info_developer">
+        #### Amirreza Hajati\n
+        #### Twitter: [@itsamirrezah](https://twitter.com/itsamirrezah)\n
+        #### Virgool: [@itsamirrezah](https://twitter.com/itsamirrezah)\n
+    </string>
+
+    <string name="app_info_libraries">
+        * RxAndroid\n
+        * Retrofit\n
+        * Android Maps Utils\n
+        * MPAndroidChart\n
+        * MaterialDrawer\n
+        * ThreeTenABP\n
+        * Markwon
+    </string>
+
+    <string name="app_info_licence">
+            Copyright © 2020 Amirreza Hajati\n\n
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.\n\n
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.\n\n
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see [https://www.gnu.org/licenses](https://www.gnu.org/licenses).
+    </string>
 </resources>

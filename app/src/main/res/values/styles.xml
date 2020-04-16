@@ -16,4 +16,12 @@
         <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
     </style>
 
+    <style name="AppInfoHeadlines">
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/grey_200</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
 </resources>

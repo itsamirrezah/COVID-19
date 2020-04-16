@@ -79,6 +79,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barChart.setDrawGridBackground(false)
         barChart.setDrawValueAboveBar(false)
         barChart.isHighlightFullBarEnabled = true
+        barChart.isAutoScaleMinMaxEnabled = true
         //custom marker
         val markerView =
             MarkerView(context!!, R.layout.chart_marker_view)
@@ -284,6 +285,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         lineChart.setExtraOffsets(0f, 5f, 0f, 5f)
         lineChart.description.isEnabled = false
         lineChart.setTouchEnabled(true)
+        lineChart.isAutoScaleMinMaxEnabled = true
         //no grid background
         lineChart.setDrawGridBackground(false)
         //custom marker

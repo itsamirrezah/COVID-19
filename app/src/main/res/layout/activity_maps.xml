@@ -47,6 +47,8 @@
                 app:fabSize="mini" />
 
         </RelativeLayout>
+
+        <include layout="@layout/bottomsheet_about"/>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.mikepenz.materialdrawer.widget.MaterialDrawerSliderView

@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -12,6 +13,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
@@ -21,9 +23,13 @@ import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.drawer.DrawerItem
 import com.itsamirrezah.covid19.util.map.AreaMarker
 import com.itsamirrezah.covid19.util.map.ClusterItemInfoWindow
+import com.mikepenz.materialdrawer.holder.ImageHolder
 import com.mikepenz.materialdrawer.holder.StringHolder
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
+import com.mikepenz.materialdrawer.util.addStickyDrawerItems
 import com.mikepenz.materialdrawer.widget.MaterialDrawerSliderView
+import io.noties.markwon.Markwon
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -34,6 +40,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var fab: FloatingActionButton
     private lateinit var slider: MaterialDrawerSliderView
+    private lateinit var aboutBottomSheetBehavior: BottomSheetBehavior<View>
     private lateinit var mMap: GoogleMap
     private lateinit var mClusterManager: ClusterManager<AreaCasesModel>
     private val compositeDisposable = CompositeDisposable()
@@ -52,23 +59,55 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             showAreaDetailFragment(world)
         }
         setupSliderView()
+        setupAboutBottomSheet()
+    }
+
+    private fun setupAboutBottomSheet() {
+        val aboutBottomSheetView = findViewById<View>(R.id.about_bottomsheet_root)
+        aboutBottomSheetBehavior = BottomSheetBehavior.from(aboutBottomSheetView)
+        aboutBottomSheetBehavior.isHideable = true
+        aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        val markWon = Markwon.create(applicationContext)
+        fillAboutTextViews(markWon, findViewById(R.id.tvAppInfo), getString(R.string.app_info_title))
+        fillAboutTextViews(markWon, findViewById(R.id.tvAppInfoDescription), getString(R.string.app_info_description))
+        fillAboutTextViews(markWon, findViewById(R.id.tvDeveloper), getString(R.string.app_info_developer))
+        fillAboutTextViews(markWon, findViewById(R.id.tvLibraries), getString(R.string.app_info_libraries))
+        fillAboutTextViews(markWon, findViewById(R.id.tvLicense), getString(R.string.app_info_licence))
+    }
+
+    private fun fillAboutTextViews(markWon: Markwon, tv: TextView, text: String) {
+        markWon.setMarkdown(tv, text)
     }
 
     private fun setupSliderView() {
         slider = findViewById(R.id.sliderView)
-        //static item
-        val headerItem = PrimaryDrawerItem()
-        headerItem.textColor =
-            ColorStateList.valueOf(ContextCompat.getColor(applicationContext, R.color.grey_200))
-        headerItem.name = StringHolder("Countries")
-        slider.itemAdapter.add(headerItem)
+        //header item on top
+        val headerItem = PrimaryDrawerItem().apply {
+            name = StringHolder("Countries")
+            textColor =
+                ColorStateList.valueOf(ContextCompat.getColor(applicationContext, R.color.grey_200))
+            isSelectable = false
+        }
+        //sticky item on bottom
+        val stickyItem = SecondaryDrawerItem().apply {
+            name = StringHolder("Application Info")
+            textColor =
+                ColorStateList.valueOf(ContextCompat.getColor(application, R.color.grey_200))
+            icon = ImageHolder(R.drawable.ic_github)
+            isSelectable = false
+        }
 
+        slider.apply {
+            itemAdapter.add(headerItem)
+            addStickyDrawerItems(stickyItem)
+        }
         //setup slider item click listener
         slider.onDrawerItemClickListener = { _v, drawerItem, _position ->
             if (drawerItem is DrawerItem) {
                 //relocate camera to selected area
                 animateMapCamera(drawerItem.areaCasesModel.latLng!!, 5f)
-            }
+            } else if (drawerItem is SecondaryDrawerItem) //app info screen
+                aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             false
         }
     }
@@ -130,7 +169,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .map {
                 AreaCasesModel(
                     it.id,
-                    LatLng(it.coordinates.lat.toDouble(),it.coordinates.lon.toDouble()),
+                    LatLng(it.coordinates.lat.toDouble(), it.coordinates.lon.toDouble()),
                     it.country,
                     it.countryCode,
                     it.province,
