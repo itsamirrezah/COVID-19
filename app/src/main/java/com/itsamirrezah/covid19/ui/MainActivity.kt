@@ -1,7 +1,10 @@
 package com.itsamirrezah.covid19.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -14,11 +17,12 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.util.TransitionUtils
 import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.drawer.DrawerItem
 import com.itsamirrezah.covid19.util.map.AreaMarker
@@ -38,7 +42,7 @@ import org.threeten.bp.LocalDate
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private lateinit var fab: FloatingActionButton
+    private lateinit var fab: ExtendedFloatingActionButton
     private lateinit var slider: MaterialDrawerSliderView
     private lateinit var aboutBottomSheetBehavior: BottomSheetBehavior<View>
     private lateinit var mMap: GoogleMap
@@ -54,12 +58,34 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        setupFab()
+        setupSliderView()
+        setupAboutBottomSheet()
+    }
+
+    private fun setupFab() {
         fab = findViewById(R.id.fab)
+        fab.shrink()
+
         fab.setOnClickListener {
             showAreaDetailFragment(world)
         }
-        setupSliderView()
-        setupAboutBottomSheet()
+        fab.setOnLongClickListener {
+            if (!fab.isExtended) {
+                fab.extend()
+                fabOnChangedCallback.onExtended(fab)
+                return@setOnLongClickListener true
+            }
+            return@setOnLongClickListener false
+        }
+    }
+
+    private val fabOnChangedCallback = object : ExtendedFloatingActionButton.OnChangedCallback() {
+        override fun onExtended(extendedFab: ExtendedFloatingActionButton?) {
+            Handler().postDelayed({
+                extendedFab!!.shrink()
+            }, 2000)
+        }
     }
 
     private fun setupAboutBottomSheet() {
@@ -286,13 +312,34 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                fab.visibility = View.VISIBLE
-                findViewById<ProgressBar>(R.id.progress).visibility = View.GONE
+                showWorldFab()
             }, {
                 print(it.message)
             })
 
         compositeDisposable.add(requestWorld)
+    }
+
+    private fun showWorldFab() {
+        TransitionUtils.revealView(
+            fab,
+            300,
+            object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    fab.extend(fabOnChangedCallback)
+                }
+            }
+        )
+
+        TransitionUtils.hideView(
+            findViewById<ProgressBar>(R.id.progressWorld),
+            300,
+            object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    findViewById<ProgressBar>(R.id.progressWorld).visibility = View.GONE
+                }
+            }
+        )
     }
 
     private fun showAreaDetailFragment(areaCaseModel: AreaCasesModel) {
