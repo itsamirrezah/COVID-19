@@ -22,7 +22,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.data.api.CovidApiImp
+import com.itsamirrezah.covid19.data.covidtrackerapi.CovidApiImp
+import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.util.TransitionUtils
 import com.itsamirrezah.covid19.util.Utils
@@ -61,8 +62,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         override fun perform(searchEntry: CharSequence) {
             val filteredItems = areaCases.filter {
                 return@filter it.country.toLowerCase().contains(searchEntry) ||
-                        it.province.toLowerCase().contains(searchEntry.toString()) ||
-                        it.countryCode.toLowerCase().contains(searchEntry.toString())
+                        it.province.toLowerCase().contains(searchEntry.toString())
             }
             updateSliderItems(filteredItems)
         }
@@ -222,23 +222,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getAllCases() {
-        val requestAllCases = CovidApiImp.getApi()
-            .getAllCases(false)
+        val requestAllCases = NovelApiImp.getApi()
+            .getAllCases()
             //returning locations one by one
-            .flatMap { Observable.fromIterable(it.areas) }
+            .flatMap { Observable.fromIterable(it) }
             //just get the locations that has at least one confirm case
-            .filter { it.latest.confirmed > 0 }
+            .filter { it.confirmedCases > 0 }
             //map data model to ui model
             .map {
                 AreaCasesModel(
-                    it.id,
-                    LatLng(it.coordinates.lat.toDouble(), it.coordinates.lon.toDouble()),
-                    it.country,
-                    it.countryCode,
-                    it.province,
-                    it.latest.confirmed,
-                    it.latest.deaths,
-                    it.latest.recovered
+                    it.countryInfo.id,
+                    LatLng(it.countryInfo.lat.toDouble(), it.countryInfo.lon.toDouble()),
+                    it.countryName,
+                    "",
+                    it.confirmedCases,
+                    it.deaths,
+                    it.recovered
                 )
             }
             .toList()

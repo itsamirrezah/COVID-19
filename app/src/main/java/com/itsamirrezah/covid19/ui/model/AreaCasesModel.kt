@@ -12,7 +12,6 @@ data class AreaCasesModel(
     val id: Int,
     val latLng: LatLng?,
     val country: String,
-    val countryCode: String,
     val province: String,
     var confirmed: Long,
     var deaths: Long,
@@ -33,7 +32,7 @@ data class AreaCasesModel(
         timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
         dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
         country: String = "Wordwide"
-    ) : this(0, null, country, "", "", confirmed, deaths, recovered, timelines, dailyTimelines)
+    ) : this(0, null, country, "", confirmed, deaths, recovered, timelines, dailyTimelines)
 
     override fun getSnippet(): String {
         return province
