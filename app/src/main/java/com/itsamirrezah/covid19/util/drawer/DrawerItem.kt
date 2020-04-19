@@ -23,8 +23,14 @@ class DrawerItem(
     override fun bindView(holder: ViewHolder, payloads: List<Any>) {
         super.bindView(holder, payloads)
 
-        holder.country.text = areaCasesModel.country
-        holder.province.text = areaCasesModel.province
+        if (areaCasesModel.province != "") {
+            holder.country.text = areaCasesModel.province
+            holder.province.visibility = View.VISIBLE
+            holder.province.text = areaCasesModel.country
+        } else {
+            holder.province.visibility = View.GONE
+            holder.country.text = areaCasesModel.country
+        }
         holder.value.text = areaCasesModel.confirmedString
     }
 

@@ -51,7 +51,7 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:1.1.0"
 
     //Material
-    implementation 'com.google.android.material:material:1.1.0-beta01'
+    implementation 'com.google.android.material:material:1.2.0-alpha06'
 
     //Gson
     implementation 'com.google.code.gson:gson:2.8.5'
@@ -79,5 +79,5 @@ dependencies {
     implementation "com.mikepenz:materialdrawer:8.0.1"
 
     //Markwon
-    implementation  "io.noties.markwon:core:4.3.1"
+    implementation "io.noties.markwon:core:4.3.1"
 }

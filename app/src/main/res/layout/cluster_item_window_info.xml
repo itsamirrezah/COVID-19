@@ -2,14 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:alpha="0.7"
+    android:alpha=".95"
     android:background="@drawable/bg_pin"
-    android:backgroundTint="@color/grey_800"
+    android:backgroundTint="#2b2d32"
     android:orientation="vertical"
-    android:paddingLeft="20dp"
+    android:paddingLeft="25dp"
     android:paddingTop="5dp"
-    android:paddingRight="20dp"
-    android:paddingBottom="20dp">
+    android:paddingRight="25dp"
+    android:paddingBottom="25dp">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -20,10 +20,10 @@
             android:id="@+id/tvCountry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif"
+            android:fontFamily="sans-serif-black"
             android:maxLength="16"
             android:text="United States"
-            android:textColor="@color/grey_200"
+            android:textColor="@color/grey_300"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -34,7 +34,7 @@
             android:layout_marginTop="-6dp"
             android:fontFamily="sans-serif"
             android:text="Province"
-            android:textColor="@color/grey_200"
+            android:textColor="@color/grey_300"
             android:textSize="10sp"
             android:visibility="visible" />
 
@@ -57,10 +57,9 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="6dp"
-                    android:layout_height="6dp"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
                     android:layout_gravity="center"
-                    android:layout_marginTop="1dp"
                     android:background="@drawable/bg_curve_square"
                     android:backgroundTint="@color/yellow_A700" />
 
@@ -95,10 +94,9 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="6dp"
-                    android:layout_height="6dp"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
                     android:layout_gravity="center"
-                    android:layout_marginTop="1dp"
                     android:background="@drawable/bg_curve_square"
                     android:backgroundTint="@color/red_A700" />
 
@@ -134,10 +132,9 @@
 
                 <ImageView
                     android:id="@+id/ivColor"
-                    android:layout_width="6dp"
-                    android:layout_height="6dp"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
                     android:layout_gravity="center"
-                    android:layout_marginTop="1dp"
                     android:background="@drawable/bg_curve_square"
                     android:backgroundTint="@color/green_A700" />
 
@@ -177,7 +174,7 @@
             <ImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:background="@drawable/ic_analysis"
+                android:background="@drawable/ic_info"
                 android:backgroundTint="@color/grey_300" />
 
         </LinearLayout>

@@ -1,5 +1,6 @@
 package com.itsamirrezah.covid19.ui
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,8 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.api.CovidApiImp
@@ -45,6 +48,23 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_area_detail, container, false)
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+
+        val bottomSheetDialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
+
+        bottomSheetDialog.setOnShowListener {
+            //import com.google.android.material.R;
+            val bottomSheet =
+                bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            val behavior = BottomSheetBehavior.from(bottomSheet!!)
+            //skip the collapsed state
+            behavior.skipCollapsed = true
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
+
+        return bottomSheetDialog
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -80,6 +100,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barChart.setDrawValueAboveBar(false)
         barChart.isHighlightFullBarEnabled = true
         barChart.isAutoScaleMinMaxEnabled = true
+        //disable y-axis scale on zoom
+        barChart.isScaleYEnabled = false
         //custom marker
         val markerView =
             MarkerView(context!!, R.layout.chart_marker_view)
@@ -97,6 +119,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         //x-axis
         val xAxis = barChart.xAxis
         xAxis.axisMinimum = 0f
+        xAxis.granularity = 1f
+        xAxis.labelRotationAngle = -30f
         xAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.enableGridDashedLine(10f, 5f, 0f)
@@ -136,10 +160,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         )
         barDataSet.highLightColor = ContextCompat.getColor(context!!, R.color.grey_100)
         barChart.data = BarData(barDataSet)
-        //show 15 days of data
-        barChart.setVisibleXRangeMaximum(30f)
-        //move the viewport to right side of the chart
-        barChart.moveViewToX(barChart.xChartMax)
 
         barChart.invalidate()
         barChart.animateY(1000)
@@ -281,11 +301,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun setupLineChart(view: View) {
         lineChart = view.findViewById(R.id.lineChart)
         lineChart.setNoDataTextColor(ContextCompat.getColor(context!!, R.color.grey_300))
-        //padding for left/top/right & bottom of the chart
-        lineChart.setExtraOffsets(0f, 5f, 0f, 5f)
         lineChart.description.isEnabled = false
         lineChart.setTouchEnabled(true)
         lineChart.isAutoScaleMinMaxEnabled = true
+        lineChart.isScaleYEnabled = false
         //no grid background
         lineChart.setDrawGridBackground(false)
         //custom marker
@@ -303,6 +322,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         // x-axis style
         val xAxis = lineChart.xAxis
         xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.granularity = 1f
+        xAxis.labelRotationAngle = -30f
         // vertical grid lines
         xAxis.enableGridDashedLine(10f, 5f, 0f)
         xAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
@@ -377,8 +398,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
                 confirmedSet, deathSet, recoveredSet
             ) as List<ILineDataSet>
         )
-        lineChart.setVisibleXRangeMaximum(30f)
-        lineChart.moveViewToX(lineChart.xChartMax)
         // draw points over time
         lineChart.animateX(500)
         //setup x-axis value formatter: display dates (Mar 13)

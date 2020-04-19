@@ -47,7 +47,7 @@ class Utils {
             )
         }
 
-        fun toNumberSeparator(value : Long): String{
+        fun toNumberSeparator(value: Long): String {
             return NumberFormat.getNumberInstance().format(value)
         }
 

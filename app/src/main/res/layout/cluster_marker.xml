@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:alpha="0.8"
     android:background="@drawable/bg_circle"
-    android:backgroundTint="@color/grey_400"
+    android:backgroundTint="@color/grey_200"
     android:contentDescription="@null">
 
     <FrameLayout

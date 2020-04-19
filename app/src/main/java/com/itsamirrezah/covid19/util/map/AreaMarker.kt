@@ -95,7 +95,7 @@ class AreaMarker(
     }
 
     override fun shouldRenderAsCluster(cluster: Cluster<AreaCasesModel>?): Boolean {
-        if (cluster!!.size > 1)
+        if (cluster!!.size > 2)
             return true
         return false
     }
@@ -109,18 +109,18 @@ class AreaMarker(
             boundBuilder.include(item.position)
             clusterItemsCount++
         }
-        if (clusterItemsCount > 3)
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 100))
+        if (clusterItemsCount > 2)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 80))
 
         return true
     }
 
     private fun getClusterOverlayColor(clusterCases: Int): Int {
-        val ratio = min(clusterCases / 40000f, 1f)
+        val ratio = min(clusterCases / 90000f, 1f)
         return Utils.blendColors(
             context,
-            R.color.overlay_light_30,
-            R.color.overlay_dark_40,
+            R.color.overlay_light_10,
+            R.color.overlay_dark_50,
             ratio
         )
     }

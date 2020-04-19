@@ -22,8 +22,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="15dp"
-            android:gravity="center"
             android:layout_marginBottom="25dp"
+            android:gravity="center"
             app:layout_anchorGravity="bottom|right|end">
 
             <ProgressBar
@@ -40,36 +40,35 @@
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
-                android:visibility="gone"
-                android:textAllCaps="false"
-                android:padding="0dp"
                 android:fontFamily="sans-serif-black"
-                android:text="Worldwide"
-                app:rippleColor="@color/grey_400"
                 android:gravity="center"
-                app:iconPadding="2dp"
+                android:padding="0dp"
+                android:text="Worldwide"
+                android:textAllCaps="false"
                 android:textSize="13sp"
-                app:iconSize="25dp"
-                app:icon="@drawable/ic_earth"
+                android:visibility="gone"
                 app:backgroundTint="@color/blue_grey_100"
                 app:elevation="20dp"
-                />
+                app:icon="@drawable/ic_earth"
+                app:iconPadding="2dp"
+                app:iconSize="25dp"
+                app:rippleColor="@color/grey_400" />
 
         </RelativeLayout>
 
-        <include layout="@layout/bottomsheet_about"/>
+        <include layout="@layout/bottomsheet_about" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.mikepenz.materialdrawer.widget.MaterialDrawerSliderView
         android:id="@+id/sliderView"
         android:layout_width="wrap_content"
-        android:paddingTop="20dp"
-        android:paddingBottom="20dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:alpha=".9"
         android:backgroundTint="#17181A"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp">
 
         <ProgressBar
             android:id="@+id/progressSlider"

@@ -47,7 +47,7 @@ class DrawerSearchItem(
 
 
         holder.etSearchBar.setOnEditorActionListener { v, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH){
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 handler.removeCallbacks(searchRunnable!!)
                 sliderSearch.perform(v.text.toString().toLowerCase().trim())
                 return@setOnEditorActionListener true

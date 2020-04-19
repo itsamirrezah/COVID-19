@@ -34,7 +34,6 @@ import com.itsamirrezah.covid19.util.map.ClusterItemInfoWindow
 import com.mikepenz.materialdrawer.holder.ImageHolder
 import com.mikepenz.materialdrawer.holder.StringHolder
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
-import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
 import com.mikepenz.materialdrawer.util.addStickyDrawerItems
 import com.mikepenz.materialdrawer.widget.MaterialDrawerSliderView
 import io.noties.markwon.Markwon
@@ -46,6 +45,8 @@ import org.threeten.bp.LocalDate
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
+    private lateinit var progressFab: ProgressBar
+    private lateinit var progressSlider: ProgressBar
     private lateinit var fab: ExtendedFloatingActionButton
     private lateinit var slider: MaterialDrawerSliderView
     private lateinit var aboutBottomSheetBehavior: BottomSheetBehavior<View>
@@ -81,6 +82,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setupAboutBottomSheet()
     }
 
+    private fun setupProgressBars() {
+        progressFab = findViewById(R.id.progressWorld)
+        progressSlider = findViewById(R.id.progressSlider)
+        progressFab.visibility = View.VISIBLE
+        progressSlider.visibility = View.VISIBLE
+    }
+
     private fun setupFab() {
         fab = findViewById(R.id.fab)
         fab.shrink()
@@ -109,14 +117,30 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun setupAboutBottomSheet() {
         val aboutBottomSheetView = findViewById<View>(R.id.about_bottomsheet_root)
         aboutBottomSheetBehavior = BottomSheetBehavior.from(aboutBottomSheetView)
-        aboutBottomSheetBehavior.isHideable = true
-        aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        aboutBottomSheetBehavior.skipCollapsed = true
+        aboutBottomSheetBehavior.halfExpandedRatio = 0.7f
+        aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
         val markWon = Markwon.create(applicationContext)
-        fillAboutTextViews(markWon, findViewById(R.id.tvAppInfo), getString(R.string.app_info_title))
-        fillAboutTextViews(markWon, findViewById(R.id.tvAppInfoDescription), getString(R.string.app_info_description))
-        fillAboutTextViews(markWon, findViewById(R.id.tvDeveloper), getString(R.string.app_info_developer))
-        fillAboutTextViews(markWon, findViewById(R.id.tvLibraries), getString(R.string.app_info_libraries))
-        fillAboutTextViews(markWon, findViewById(R.id.tvLicense), getString(R.string.app_info_licence))
+        fillAboutTextViews(
+            markWon,
+            findViewById(R.id.tvAppInfo),
+            getString(R.string.app_info_title)
+        )
+        fillAboutTextViews(
+            markWon,
+            findViewById(R.id.tvDeveloper),
+            getString(R.string.app_info_developer)
+        )
+        fillAboutTextViews(
+            markWon,
+            findViewById(R.id.tvLibraries),
+            getString(R.string.app_info_libraries)
+        )
+        fillAboutTextViews(
+            markWon,
+            findViewById(R.id.tvLicense),
+            getString(R.string.app_info_licence)
+        )
     }
 
     private fun fillAboutTextViews(markWon: Markwon, tv: TextView, text: String) {
@@ -166,7 +190,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupClusterManager() {
         mClusterManager = ClusterManager(this, mMap)
-        mClusterManager.algorithm.maxDistanceBetweenClusteredItems = 100
+        mClusterManager.algorithm.maxDistanceBetweenClusteredItems = 80
         mClusterManager.renderer =
             AreaMarker(this, mMap, mClusterManager)
         mMap.setOnCameraIdleListener(mClusterManager)
@@ -349,11 +373,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )
 
         TransitionUtils.hideView(
-            findViewById<ProgressBar>(R.id.progressWorld),
-            300,
+            progressFab, 300,
             object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
-                    findViewById<ProgressBar>(R.id.progressWorld).visibility = View.GONE
+                    progressFab.visibility = View.GONE
                 }
             }
         )

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#0F0F0F</color>
+    <color name="colorPrimary">#17181A</color>
+    <color name="colorPrimaryDark">#17181A</color>
     <color name="colorAccent">#D81B60</color>
 
     <!--colors -->
@@ -84,6 +84,10 @@
     <color name="red_A200">#FF5252</color>
     <color name="red_A400">#FF1744</color>
     <color name="red_A700">#D50000</color>
+    <color name="red_burgundy_900">#8D021F</color>
+    <color name="red_burgundy_800">#9d0d2a</color>
+    <color name="red_burgundy_600">#bb1e37</color>
+    <color name="red_burgundy_500">#c92639</color>
 
     <color name="grey_3">#f7f7f7</color>
     <color name="grey_5">#f2f2f2</color>
@@ -115,6 +119,10 @@
     <color name="blue_grey_700">#455A64</color>
     <color name="blue_grey_800">#37474F</color>
     <color name="blue_grey_900">#263238</color>
+
+    <color name="blue_air_force_900">#203d50</color>
+
+    <color name="light_slate_gray_900">#232c34</color>
 
     <!--overlay colors -->
     <color name="overlay_dark_10">#1A000000</color>
