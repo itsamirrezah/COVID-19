@@ -14,7 +14,7 @@ class DrawerItem(
     override val layoutRes: Int
         get() = R.layout.drawer_item
     override val type: Int
-        get() = R.id.material_drawer_item
+        get() = R.id.DrawerItem
 
     override fun getViewHolder(v: View): ViewHolder {
         return ViewHolder(v)

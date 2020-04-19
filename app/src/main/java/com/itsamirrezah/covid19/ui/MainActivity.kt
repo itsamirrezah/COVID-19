@@ -2,10 +2,12 @@ package com.itsamirrezah.covid19.ui
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.app.Activity
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +27,8 @@ import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.util.TransitionUtils
 import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.drawer.DrawerItem
+import com.itsamirrezah.covid19.util.drawer.DrawerSearchItem
+import com.itsamirrezah.covid19.util.drawer.SliderSearch
 import com.itsamirrezah.covid19.util.map.AreaMarker
 import com.itsamirrezah.covid19.util.map.ClusterItemInfoWindow
 import com.mikepenz.materialdrawer.holder.ImageHolder
@@ -49,6 +53,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mClusterManager: ClusterManager<AreaCasesModel>
     private val compositeDisposable = CompositeDisposable()
     private lateinit var world: AreaCasesModel
+    private lateinit var areaCases: List<AreaCasesModel>
+
+    private val sliderSearch = object : SliderSearch {
+
+        override fun perform(searchEntry: CharSequence) {
+            val filteredItems = areaCases.filter {
+                return@filter it.country.toLowerCase().contains(searchEntry) ||
+                        it.province.toLowerCase().contains(searchEntry.toString()) ||
+                        it.countryCode.toLowerCase().contains(searchEntry.toString())
+            }
+            updateSliderItems(filteredItems)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +75,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        setupProgressBars()
         setupFab()
         setupSliderView()
         setupAboutBottomSheet()
@@ -107,15 +125,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupSliderView() {
         slider = findViewById(R.id.sliderView)
-        //header item on top
-        val headerItem = PrimaryDrawerItem().apply {
-            name = StringHolder("Countries")
-            textColor =
-                ColorStateList.valueOf(ContextCompat.getColor(applicationContext, R.color.grey_200))
-            isSelectable = false
-        }
-        //sticky item on bottom
-        val stickyItem = SecondaryDrawerItem().apply {
+        //search item on bottom
+        val searchItem = DrawerSearchItem(sliderSearch)
+        //app info item on bottom
+        val appInfoItem = PrimaryDrawerItem().apply {
             name = StringHolder("Application Info")
             textColor =
                 ColorStateList.valueOf(ContextCompat.getColor(application, R.color.grey_200))
@@ -124,15 +137,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         slider.apply {
-            itemAdapter.add(headerItem)
-            addStickyDrawerItems(stickyItem)
+            addStickyDrawerItems(searchItem)
+            addStickyDrawerItems(appInfoItem)
         }
         //setup slider item click listener
         slider.onDrawerItemClickListener = { _v, drawerItem, _position ->
             if (drawerItem is DrawerItem) {
                 //relocate camera to selected area
+                hideKeyboard()
                 animateMapCamera(drawerItem.areaCasesModel.latLng!!, 5f)
-            } else if (drawerItem is SecondaryDrawerItem) //app info screen
+            } else if (drawerItem is PrimaryDrawerItem) //app info screen
                 aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             false
         }
@@ -140,7 +154,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun animateMapCamera(latLng: LatLng, zoom: Float) {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
-
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -208,10 +221,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
+                areaCases = it
                 mClusterManager.clearItems()
                 mClusterManager.addItems(it)
                 mClusterManager.cluster()
-                updateSliderItems(it)
+                updateSliderItems(areaCases)
                 makeWorld()
             }, {
                 print(it.message)
@@ -221,10 +235,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     //update slider items
-    private fun updateSliderItems(areas: MutableList<AreaCasesModel>) {
-        areas.sortByDescending { area -> area.confirmed }
-        for (area in areas)
+    private fun updateSliderItems(areas: List<AreaCasesModel>) {
+        slider.itemAdapter.clear()
+        val sortedAreas = areas.toMutableList()
+        sortedAreas.sortByDescending { area -> area.confirmed }
+        for (area in sortedAreas)
             slider.itemAdapter.add(DrawerItem(area))
+        hideProgressSlider()
     }
 
     private fun makeWorld() {
@@ -342,12 +359,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )
     }
 
+    private fun hideProgressSlider() {
+        TransitionUtils.hideView(
+            progressSlider, 300,
+            object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    progressSlider.visibility = View.GONE
+                }
+            }
+        )
+    }
+
     private fun showAreaDetailFragment(areaCaseModel: AreaCasesModel) {
         val bottomSheet = AreaDetailFragment()
         val bundle = Bundle()
         bundle.putParcelable("AREA_CASE_MODEL_EXTRA", areaCaseModel)
         bottomSheet.arguments = bundle
         bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        //find currently focused view
+        var view = currentFocus
+        if (view == null) {
+            view = View(applicationContext)
+        }
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
 }
