@@ -1,6 +1,7 @@
 package com.itsamirrezah.covid19.data.novelapi.model
 
 import com.google.gson.annotations.SerializedName
+import com.google.gson.internal.LinkedTreeMap
 
 class CountriesResponse(
     @SerializedName("countryInfo")
@@ -46,4 +47,20 @@ data class CountryInfo(
     val lon: Float,
     @SerializedName("flag")
     val flag: String
+)
+
+class CountryTimlineResponse(
+    @SerializedName("country")
+    val country: String,
+    @SerializedName("timeline")
+    val timelines: Timelines
+)
+
+data class Timelines(
+    @SerializedName("cases")
+    val confirmed: LinkedTreeMap<String, Int>,
+    @SerializedName("deaths")
+    val deaths: LinkedTreeMap<String, Int>,
+    @SerializedName("recovered")
+    val recovered: LinkedTreeMap<String, Int>
 )

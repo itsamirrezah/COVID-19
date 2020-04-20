@@ -51,8 +51,13 @@ class Utils {
             return NumberFormat.getNumberInstance().format(value)
         }
 
-        fun toLocalDate(utcDate: String): LocalDate {
+        fun toLocalDateTime(utcDate: String): LocalDate {
             return LocalDate.parse(utcDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
+        }
+
+        fun toLocalDate(utcDate: String): LocalDate {
+            val splitDate = utcDate.split("/")
+            return LocalDate.of(splitDate[2].toInt(),splitDate[0].toInt(),splitDate[1].toInt())
         }
 
         //e.g: (2020-3-22)-3 = (2020-3-19)

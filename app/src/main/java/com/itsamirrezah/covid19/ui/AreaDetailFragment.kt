@@ -20,7 +20,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.data.api.CovidApiImp
+import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.ui.model.MarkerData
 import com.itsamirrezah.covid19.util.Utils
@@ -243,22 +243,22 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     }
 
     private fun getAreaCases() {
-        val areaCasesRequest = CovidApiImp.getApi()
-            .getAreaById(areaCaseModel.id)
+        val areaCasesRequest = NovelApiImp.getApi()
+            .getTimelinesByCountry(areaCaseModel.id)
             //map data model to ui model
             .map {
                 val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
                 val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
                     mutableListOf()
 
-                for ((index, timeline) in it.area.timelines.confirmed.timeline.toList().withIndex()) {
+                for ((index, timeline) in it.timelines.confirmed.toList().withIndex()) {
                     //gather information about area since first case confirmed
                     if (timeline.second <= 0)
                         continue
 
                     val confirmed = timeline.second
-                    val deaths = it.area.timelines.deaths.timeline[timeline.first] ?: 0
-                    val recovered = it.area.timelines.recovered.timeline[timeline.first] ?: 0
+                    val deaths = it.timelines.deaths[timeline.first] ?: 0
+                    val recovered = it.timelines.recovered[timeline.first] ?: 0
                     val localDate = Utils.toLocalDate(timeline.first)
 
                     timelines.add(
@@ -268,13 +268,13 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
                     )
 
                     val dailyConfirmed =
-                        confirmed - it.area.timelines.confirmed.timeline.toList()
+                        confirmed - it.timelines.confirmed.toList()
                             .getOrElse(index - 1) { Pair("", 0) }.second
                     val dailyDeaths =
-                        deaths - it.area.timelines.deaths.timeline.toList()
+                        deaths - it.timelines.deaths.toList()
                             .getOrElse(index - 1) { Pair("", 0) }.second
                     val dailyRecovered =
-                        recovered - it.area.timelines.recovered.timeline.toList()
+                        recovered - it.timelines.recovered.toList()
                             .getOrElse(index - 1) { Pair("", 0) }.second
 
                     dailyTimeline.add(
