@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.BarChart
@@ -21,15 +22,19 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
+import com.itsamirrezah.covid19.data.novelapi.model.Timelines
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.ui.model.MarkerData
 import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.chart.CompactDigitValueFormatter
 import com.itsamirrezah.covid19.util.chart.DateValueFormatter
 import com.itsamirrezah.covid19.util.chart.MarkerView
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.threeten.bp.LocalDate
+import retrofit2.HttpException
 
 class AreaDetailFragment : BottomSheetDialogFragment() {
 
@@ -83,13 +88,18 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             setupBarChart(view)
 
             if (areaCaseModel.timelines == null) {
-                getAreaCases()
+                requestTimeline()
             } else {
                 setupLineData()
                 setupBarData()
             }
 
         }
+    }
+
+    private fun requestTimeline() {
+        if (areaCaseModel.id < 0) getWorld()
+        else getAreaCases()
     }
 
     private fun setupBarChart(view: View) {
@@ -244,58 +254,79 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
     private fun getAreaCases() {
         val areaCasesRequest = NovelApiImp.getApi()
-            .getTimelinesByCountry(areaCaseModel.id)
-            //map data model to ui model
-            .map {
-                val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
-                val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
-                    mutableListOf()
+            .getTimelinesByCountry(areaCaseModel.id.toString())
+            .map { it.timelines }
+            .map { mapDataToUiModel(it) }
 
-                for ((index, timeline) in it.timelines.confirmed.toList().withIndex()) {
-                    //gather information about area since first case confirmed
-                    if (timeline.second <= 0)
-                        continue
+        subscribeRequest(areaCasesRequest)
+    }
 
-                    val confirmed = timeline.second
-                    val deaths = it.timelines.deaths[timeline.first] ?: 0
-                    val recovered = it.timelines.recovered[timeline.first] ?: 0
-                    val localDate = Utils.toLocalDate(timeline.first)
-
-                    timelines.add(
-                        Pair(
-                            localDate, Triple(confirmed!!, deaths, recovered)
-                        )
-                    )
-
-                    val dailyConfirmed =
-                        confirmed - it.timelines.confirmed.toList()
-                            .getOrElse(index - 1) { Pair("", 0) }.second
-                    val dailyDeaths =
-                        deaths - it.timelines.deaths.toList()
-                            .getOrElse(index - 1) { Pair("", 0) }.second
-                    val dailyRecovered =
-                        recovered - it.timelines.recovered.toList()
-                            .getOrElse(index - 1) { Pair("", 0) }.second
-
-                    dailyTimeline.add(
-                        Pair(
-                            localDate, Triple(dailyConfirmed, dailyDeaths, dailyRecovered)
-                        )
-                    )
-                }
-
-                areaCaseModel.timelines = timelines
-                areaCaseModel.dailyTimelines = dailyTimeline
-                areaCaseModel
-            }
-            .subscribeOn(Schedulers.io())
+    private fun subscribeRequest(observable: Observable<AreaCasesModel>): Disposable? {
+        return observable.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 setupLineData()
                 setupBarData()
             }, {
-                print(it.message)
+                if (it is HttpException)
+                    displayApiError()
             })
+    }
+
+    private fun displayApiError() {
+        Toast.makeText(activity, "Historical data are not available", Toast.LENGTH_LONG)
+            .show()
+    }
+
+    private fun getWorld() {
+        val world = NovelApiImp.getApi()
+            .getWorldTimeline()
+            .map { mapDataToUiModel(it) }
+
+        subscribeRequest(world)
+    }
+
+    private fun mapDataToUiModel(it: Timelines): AreaCasesModel {
+        val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
+        val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
+            mutableListOf()
+
+        for ((index, timeline) in it.confirmed.toList().withIndex()) {
+            //gather information about area since first case confirmed
+            if (timeline.second <= 0)
+                continue
+
+            val confirmed = timeline.second
+            val deaths = it.deaths[timeline.first] ?: 0
+            val recovered = it.recovered[timeline.first] ?: 0
+            val localDate = Utils.toLocalDate(timeline.first)
+
+            timelines.add(
+                Pair(
+                    localDate, Triple(confirmed!!, deaths, recovered)
+                )
+            )
+
+            val dailyConfirmed =
+                confirmed - it.confirmed.toList()
+                    .getOrElse(index - 1) { Pair("", 0) }.second
+            val dailyDeaths =
+                deaths - it.deaths.toList()
+                    .getOrElse(index - 1) { Pair("", 0) }.second
+            val dailyRecovered =
+                recovered - it.recovered.toList()
+                    .getOrElse(index - 1) { Pair("", 0) }.second
+
+            dailyTimeline.add(
+                Pair(
+                    localDate, Triple(dailyConfirmed, dailyDeaths, dailyRecovered)
+                )
+            )
+        }
+
+        areaCaseModel.timelines = timelines
+        areaCaseModel.dailyTimelines = dailyTimeline
+        return areaCaseModel
     }
 
     private fun setupLineChart(view: View) {

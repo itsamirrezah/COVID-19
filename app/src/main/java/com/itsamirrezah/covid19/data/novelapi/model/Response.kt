@@ -3,7 +3,7 @@ package com.itsamirrezah.covid19.data.novelapi.model
 import com.google.gson.annotations.SerializedName
 import com.google.gson.internal.LinkedTreeMap
 
-class CountriesResponse(
+class CasesResponse(
     @SerializedName("countryInfo")
     val countryInfo: CountryInfo,
     @SerializedName("updated")
@@ -25,11 +25,11 @@ class CountriesResponse(
     @SerializedName("critical")
     val criticalCases: Long,
     @SerializedName("casesPerOneMillion")
-    val casesPerOneMillion: Long,
+    val casesPerOneMillion: Float,
     @SerializedName("deathsPerOneMillion")
-    val deathsPerOneMillion: Long,
+    val deathsPerOneMillion: Float,
     @SerializedName("testsPerOneMillion")
-    val testsPerOneMillion: Long,
+    val testsPerOneMillion: Float,
     @SerializedName("continent")
     val continent: String
 )

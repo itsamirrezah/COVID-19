@@ -22,11 +22,9 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.data.covidtrackerapi.CovidApiImp
 import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
 import com.itsamirrezah.covid19.ui.model.AreaCasesModel
 import com.itsamirrezah.covid19.util.TransitionUtils
-import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.drawer.DrawerItem
 import com.itsamirrezah.covid19.util.drawer.DrawerSearchItem
 import com.itsamirrezah.covid19.util.drawer.SliderSearch
@@ -42,7 +40,6 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import org.threeten.bp.LocalDate
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -249,7 +246,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 mClusterManager.addItems(it)
                 mClusterManager.cluster()
                 updateSliderItems(areaCases)
-                makeWorld()
+                getWorld()
             }, {
                 print(it.message)
             })
@@ -267,97 +264,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         hideProgressSlider()
     }
 
-    private fun makeWorld() {
-        val requestWorld = CovidApiImp.getApi()
-            .getAllCases(true)
-            //just get the locations that has at least one confirm case
-            .filter { it.latest.confirmed > 0 }
+    private fun getWorld() {
+        val worldData = NovelApiImp.getApi()
+            .getAllWorld()
             .map {
-                //setup world timeline
-                val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
-                val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
-                    mutableListOf()
-
-                for (area in it.areas) {
-                    val confirmedTimeline = area.timelines.confirmed.timeline
-                    val deathsTimeline = area.timelines.deaths.timeline
-                    val recoveredTimeline = area.timelines.recovered.timeline
-
-                    //pair = Pair(key,value)
-                    for ((index, pair) in confirmedTimeline.toList().withIndex()) {
-                        val confirmed = pair.second +
-                                timelines.getOrElse(index) {
-                                    Pair(
-                                        null,
-                                        Triple(0, 0, 0)
-                                    )
-                                }.second.first
-                        val deaths = (deathsTimeline[pair.first] ?: 0) +
-                                timelines.getOrElse(index) {
-                                    Pair(
-                                        null,
-                                        Triple(0, 0, 0)
-                                    )
-                                }.second.second
-                        val recovered = (recoveredTimeline[pair.first] ?: 0) +
-                                timelines.getOrElse(index) {
-                                    Pair(
-                                        null,
-                                        Triple(0, 0, 0)
-                                    )
-                                }.second.third
-                        val localDate = Utils.toLocalDate(pair.first)
-
-                        val data = Pair(localDate, Triple(confirmed, deaths, recovered))
-                        if (timelines.size <= index)
-                            timelines.add(data)
-                        else
-                            timelines[index] = data
-                    }
-                }
-
-                //setup world daily
-                for ((index, timeline) in timelines.withIndex()) {
-                    val confirmed = timeline.second.first
-                    val deaths = timeline.second.second
-                    val recovered = timeline.second.third
-                    val dailyConfirmed =
-                        confirmed - timelines.getOrElse(index - 1) {
-                            Pair(null, Triple(0, 0, 0))
-                        }.second.first
-                    val dailyDeaths = deaths - timelines.getOrElse(index - 1) {
-                        Pair(null, Triple(0, 0, 0))
-                    }.second.second
-                    val dailyRecovered = recovered - timelines.getOrElse(index - 1) {
-                        Pair(null, Triple(0, 0, 0))
-                    }.second.third
-
-                    dailyTimeline.add(
-                        Pair(
-                            timeline.first,
-                            Triple(
-                                dailyConfirmed, dailyDeaths, dailyRecovered
-                            )
-                        )
-                    )
-                }
-                world = AreaCasesModel(
-                    it.latest.confirmed,
-                    it.latest.deaths,
-                    it.latest.recovered,
-                    timelines,
-                    dailyTimeline
+                AreaCasesModel(
+                    -1,
+                    it.confirmedCases,
+                    it.deaths,
+                    it.recovered,
+                    "Worldwide"
                 )
             }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
+                world = it
                 showWorldFab()
             }, {
                 print(it.message)
             })
-
-        compositeDisposable.add(requestWorld)
     }
 
     private fun showWorldFab() {

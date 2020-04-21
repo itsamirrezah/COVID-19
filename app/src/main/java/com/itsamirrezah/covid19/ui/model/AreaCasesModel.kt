@@ -26,13 +26,12 @@ data class AreaCasesModel(
     val recoveredString = Utils.toNumberSeparator(recovered)
 
     constructor(
+        id: Int,
         confirmed: Long,
         deaths: Long,
         recovered: Long,
-        timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
-        dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>,
-        country: String = "Wordwide"
-    ) : this(0, null, country, "", confirmed, deaths, recovered, timelines, dailyTimelines)
+        country: String
+    ) : this(id, null, country, "", confirmed, deaths, recovered)
 
     override fun getSnippet(): String {
         return province
