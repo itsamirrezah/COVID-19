@@ -23,7 +23,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
-import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.ui.model.AreaModel
 import com.itsamirrezah.covid19.util.TransitionUtils
 import com.itsamirrezah.covid19.util.drawer.DrawerItem
 import com.itsamirrezah.covid19.util.drawer.DrawerSearchItem
@@ -49,15 +49,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var slider: MaterialDrawerSliderView
     private lateinit var aboutBottomSheetBehavior: BottomSheetBehavior<View>
     private lateinit var mMap: GoogleMap
-    private lateinit var mClusterManager: ClusterManager<AreaCasesModel>
+    private lateinit var mClusterManager: ClusterManager<AreaModel>
     private val compositeDisposable = CompositeDisposable()
-    private lateinit var world: AreaCasesModel
-    private lateinit var areaCases: List<AreaCasesModel>
+    private lateinit var world: AreaModel
+    private lateinit var areas: List<AreaModel>
 
     private val sliderSearch = object : SliderSearch {
 
         override fun perform(searchEntry: CharSequence) {
-            val filteredItems = areaCases.filter {
+            val filteredItems = areas.filter {
                 return@filter it.country.toLowerCase().contains(searchEntry) ||
                         it.province.toLowerCase().contains(searchEntry.toString())
             }
@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
         setupMap()
         setupClusterManager()
-        getAllCases()
+        getAllAreas()
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
     }
 
@@ -213,13 +213,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         )
         mMap.setOnInfoWindowClickListener {
-            showAreaDetailFragment(it!!.tag as AreaCasesModel)
+            showAreaDetailFragment(it!!.tag as AreaModel)
         }
 
     }
 
-    private fun getAllCases() {
-        val requestAllCases = NovelApiImp.getApi()
+    private fun getAllAreas() {
+        val requestAreas = NovelApiImp.getApi()
             .getAllCases()
             //returning locations one by one
             .flatMap { Observable.fromIterable(it) }
@@ -227,7 +227,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .filter { it.confirmedCases > 0 }
             //map data model to ui model
             .map {
-                AreaCasesModel(
+                AreaModel(
                     it.countryInfo.id,
                     LatLng(it.countryInfo.lat.toDouble(), it.countryInfo.lon.toDouble()),
                     it.countryName,
@@ -241,21 +241,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                areaCases = it
+                areas = it
                 mClusterManager.clearItems()
                 mClusterManager.addItems(it)
                 mClusterManager.cluster()
-                updateSliderItems(areaCases)
+                updateSliderItems(areas)
                 getWorld()
             }, {
                 print(it.message)
             })
 
-        compositeDisposable.add(requestAllCases)
+        compositeDisposable.add(requestAreas)
     }
 
     //update slider items
-    private fun updateSliderItems(areas: List<AreaCasesModel>) {
+    private fun updateSliderItems(areas: List<AreaModel>) {
         slider.itemAdapter.clear()
         val sortedAreas = areas.toMutableList()
         sortedAreas.sortByDescending { area -> area.confirmed }
@@ -265,10 +265,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getWorld() {
-        val worldData = NovelApiImp.getApi()
-            .getAllWorld()
+        val requestWorld = NovelApiImp.getApi()
+            .getWorldCases()
             .map {
-                AreaCasesModel(
+                AreaModel(
                     -1,
                     it.confirmedCases,
                     it.deaths,
@@ -318,7 +318,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )
     }
 
-    private fun showAreaDetailFragment(areaCaseModel: AreaCasesModel) {
+    private fun showAreaDetailFragment(areaCaseModel: AreaModel) {
         val bottomSheet = AreaDetailFragment()
         val bundle = Bundle()
         bundle.putParcelable("AREA_CASE_MODEL_EXTRA", areaCaseModel)

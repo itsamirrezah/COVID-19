@@ -7,7 +7,7 @@ import android.widget.TextView
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Marker
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.ui.model.AreaModel
 
 class ClusterItemInfoWindow(
     context: Context
@@ -22,7 +22,7 @@ class ClusterItemInfoWindow(
     private var tvProvince: TextView = rootView.findViewById(R.id.tvProvince)
 
     override fun getInfoWindow(marker: Marker?): View {
-        val data = marker!!.tag as AreaCasesModel
+        val data = marker!!.tag as AreaModel
 
         tvCountry.text = data.country
         if (data.province != "") {

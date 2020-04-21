@@ -1,4 +1,4 @@
-package com.itsamirrezah.covid19.data.models
+package com.itsamirrezah.covid19.data.covidtrackerapi.models
 
 import com.google.gson.annotations.SerializedName
 import com.google.gson.internal.LinkedTreeMap

@@ -18,6 +18,6 @@ interface NovelApi {
     fun getWorldTimeline(): Observable<Timelines>
 
     @GET("/v2/all")
-    fun getAllWorld(): Observable<CasesResponse>
+    fun getWorldCases(): Observable<CasesResponse>
 
 }

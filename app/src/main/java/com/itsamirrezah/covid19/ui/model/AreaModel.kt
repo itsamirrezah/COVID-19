@@ -8,7 +8,7 @@ import kotlinx.android.parcel.Parcelize
 import org.threeten.bp.LocalDate
 
 @Parcelize
-data class AreaCasesModel(
+data class AreaModel(
     val id: Int,
     val latLng: LatLng?,
     val country: String,

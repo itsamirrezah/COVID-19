@@ -1,4 +1,4 @@
-package com.itsamirrezah.covid19.data.api
+package com.itsamirrezah.covid19.data.covidtrackerapi
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
