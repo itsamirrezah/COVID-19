@@ -32,8 +32,7 @@ class ClusterItemInfoWindow(
             tvProvince.visibility = View.GONE
         tvConfirmed.text = data.confirmedString
         tvDeaths.text = data.deathString
-        if (data.recovered.toInt() != 0)
-            tvRecovered.text = data.recoveredString
+        tvRecovered.text = data.recoveredString
         return rootView
     }
 

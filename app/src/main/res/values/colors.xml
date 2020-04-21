@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#17181A</color>
-    <color name="colorPrimaryDark">#17181A</color>
+    <color name="colorPrimary">@color/bg_github_color</color>
+    <color name="colorPrimaryDark">@color/bg_github_color</color>
     <color name="colorAccent">#D81B60</color>
 
     <!--colors -->
@@ -144,4 +144,6 @@
     <color name="overlay_light_80">#CCFFFFFF</color>
     <color name="overlay_light_90">#E6FFFFFF</color>
     <color name="overlay_light_100">#00000000</color>
+    <color name="bg_github_color">#17181A</color>
+
 </resources>

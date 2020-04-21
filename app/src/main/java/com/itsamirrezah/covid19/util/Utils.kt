@@ -1,6 +1,9 @@
 package com.itsamirrezah.covid19.util
 
+import android.app.Activity
 import android.content.Context
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import org.threeten.bp.LocalDate
@@ -57,7 +60,7 @@ class Utils {
 
         fun toLocalDate(utcDate: String): LocalDate {
             val splitDate = utcDate.split("/")
-            return LocalDate.of(splitDate[2].toInt(),splitDate[0].toInt(),splitDate[1].toInt())
+            return LocalDate.of(splitDate[2].toInt(), splitDate[0].toInt(), splitDate[1].toInt())
         }
 
         //e.g: (2020-3-22)-3 = (2020-3-19)
@@ -72,10 +75,25 @@ class Utils {
 
         fun blendColors(context: Context, colorRes1: Int, ColorRes2: Int, ratio: Float): Int {
             return ColorUtils.blendARGB(
-                ContextCompat.getColor(context, colorRes1),
-                ContextCompat.getColor(context, ColorRes2),
+                getColor(context, colorRes1),
+                getColor(context, ColorRes2),
                 ratio
             )
         }
+
+        fun hideKeyboard(activity: Activity) {
+            val imm = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+            //find currently focused view
+            var view = activity.currentFocus
+            if (view == null) {
+                view = View(activity)
+            }
+            imm.hideSoftInputFromWindow(view.windowToken, 0)
+        }
+
+        fun getColor(context: Context, color: Int): Int {
+            return ContextCompat.getColor(context, color)
+        }
+
     }
 }

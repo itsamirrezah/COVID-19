@@ -2,12 +2,13 @@ package com.itsamirrezah.covid19.ui
 
 import android.app.Dialog
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
@@ -43,6 +44,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
 
+    private var handler: Handler = Handler(Looper.getMainLooper())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.TransparentBottomSheetDialogTheme)
@@ -52,7 +55,11 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_area_detail, container, false)
+        val view = inflater.inflate(R.layout.fragment_area_detail, container, false)
+        setupPieChart(view)
+        setupLineChart(view)
+        setupBarChart(view)
+        return view
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -60,7 +67,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val bottomSheetDialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
 
         bottomSheetDialog.setOnShowListener {
-            //import com.google.android.material.R;
             val bottomSheet =
                 bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
             val behavior = BottomSheetBehavior.from(bottomSheet!!)
@@ -80,13 +86,9 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             view.findViewById<TextView>(R.id.tvCountry).text = area.country
             view.findViewById<TextView>(R.id.tvConfirmed).text = area.confirmedString
             view.findViewById<TextView>(R.id.tvDeaths).text = area.deathString
-            if (area.recovered > 0)
-                view.findViewById<TextView>(R.id.tvRecovered).text =
-                    area.recoveredString
-            setupPieChart(view)
-            setupLineChart(view)
-            setupBarChart(view)
+            view.findViewById<TextView>(R.id.tvRecovered).text = area.recoveredString
 
+            setupPieData()
             if (area.timelines == null) {
                 requestTimeline()
             } else {
@@ -104,7 +106,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
     private fun setupBarChart(view: View) {
         barChart = view.findViewById(R.id.barChart)
-        barChart.setNoDataTextColor(ContextCompat.getColor(context!!, R.color.grey_300))
+        barChart.setNoDataTextColor(Utils.getColor(context!!, R.color.grey_300))
         barChart.description.isEnabled = false
         barChart.setDrawGridBackground(false)
         barChart.setDrawValueAboveBar(false)
@@ -121,7 +123,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val yAxis = barChart.axisLeft
         //y-axis value formatter
         yAxis.valueFormatter = CompactDigitValueFormatter()
-        yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        yAxis.textColor = Utils.getColor(context!!, R.color.grey_300)
         yAxis.axisMinimum = 0f
         yAxis.enableGridDashedLine(10f, 5f, 0f)
         //add extra space over the maximum bar
@@ -131,7 +133,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         xAxis.axisMinimum = 0f
         xAxis.granularity = 1f
         xAxis.labelRotationAngle = -30f
-        xAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        xAxis.textColor = Utils.getColor(context!!, R.color.grey_300)
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.enableGridDashedLine(10f, 5f, 0f)
         //disable dual y-axes
@@ -140,6 +142,12 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupBarData() {
+        //x-axis value formatter
+        barChart.xAxis.valueFormatter = DateValueFormatter(
+            area.timelines!!.last().first,
+            area.timelines!!.size
+        )
+
         val entries = mutableListOf<BarEntry>()
         //list.indices: returns an [IntRange] of the valid indices for this collection
         for (count in area.dailyTimelines!!.indices) {
@@ -164,28 +172,25 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barDataSet.setDrawIcons(false)
         //bar colors
         barDataSet.colors = mutableListOf(
-            ContextCompat.getColor(context!!, R.color.yellow_A700), //confirmed
-            ContextCompat.getColor(context!!, R.color.red_A700), //deaths
-            ContextCompat.getColor(context!!, R.color.green_A700) //recovered
+            Utils.getColor(context!!, R.color.yellow_A700), //confirmed
+            Utils.getColor(context!!, R.color.red_A700), //deaths
+            Utils.getColor(context!!, R.color.green_A700) //recovered
         )
-        barDataSet.highLightColor = ContextCompat.getColor(context!!, R.color.grey_100)
-        barChart.data = BarData(barDataSet)
+        barDataSet.highLightColor = Utils.getColor(context!!, R.color.grey_100)
 
-        barChart.invalidate()
-        barChart.animateY(1000)
-        //x-axis value formatter
-        barChart.xAxis.valueFormatter = DateValueFormatter(
-            area.timelines!!.last().first,
-            area.timelines!!.size
-        )
+        handler.postDelayed({
+            barChart.data = BarData(barDataSet)
+            barChart.animateY(800)
+
+        }, 800)
     }
 
     private fun setupPieChart(view: View) {
         pieChart = view.findViewById(R.id.pieChart)
         pieChart.description.isEnabled = false
-        pieChart.setNoDataTextColor(ContextCompat.getColor(context!!, R.color.grey_300))
+        pieChart.setNoDataTextColor(Utils.getColor(context!!, R.color.grey_300))
         //padding for left/top/right & bottom of the chart
-        pieChart.setExtraOffsets(0f, 5f, 0f, 5f)
+        pieChart.setExtraOffsets(10f, 10f, 10f, 10f)
         //rotation speed
         pieChart.dragDecelerationFrictionCoef = 0.95f
         //no draw hole
@@ -201,45 +206,51 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         //no legend
         pieChart.legend.isEnabled = false
         //set entry label
-        pieChart.setEntryLabelColor(ContextCompat.getColor(context!!, R.color.grey_300))
-        pieChart.setEntryLabelTextSize(10f)
-        //animation
-        pieChart.animateY(1000, Easing.EaseInOutQuad)
-
-        setupPieData()
+        pieChart.setEntryLabelColor(Utils.getColor(context!!, R.color.grey_300))
+        pieChart.setEntryLabelTextSize(9f)
+        pieChart.animateY(800, Easing.EaseInOutQuad)
+        pieChart.setDrawEntryLabels(false)
     }
 
     private fun setupPieData() {
         //active cases = confirmed cases - (deaths + recovered)
         val activeCases =
-            area.confirmed.toLong() - (area.deaths.toLong() + area.recovered.toLong())
-
+            area.confirmed - (area.deaths + area.recovered)
         val entries = mutableListOf(
-            PieEntry(activeCases.toFloat(), "Active"),
-            PieEntry(area.deaths.toFloat(), "Deaths"),
-            PieEntry(area.recovered.toFloat(), "Recovered")
-            //do not display entries with no values
-        ).filter { it.value != 0f }
+            PieEntry(
+                activeCases.toFloat(),
+                "Active",
+                Utils.getColor(context!!, R.color.yellow_A700)
+            ),
+            PieEntry(
+                area.deaths.toFloat(),
+                "Deaths",
+                Utils.getColor(context!!, R.color.red_A700)
+            ),
+            PieEntry(
+                area.recovered.toFloat(),
+                "Recovered",
+                Utils.getColor(context!!, R.color.green_A700)
+            )
+            // filter zero entries
+            // do not display entries with no values
+        ).filter { it.y > 0 }
 
         //create a pie data set with mutable list of pie entries
         val dataset = PieDataSet(entries, "")
-
-        dataset.sliceSpace = 2f
+        dataset.setAutomaticallyDisableSliceSpacing(true)
+        dataset.sliceSpace = 3f
         dataset.selectionShift = 5f
         //set colors for each slice of pie chart
-        dataset.colors = listOf(
-            ContextCompat.getColor(context!!, R.color.yellow_A700),
-            ContextCompat.getColor(context!!, R.color.red_A700),
-            ContextCompat.getColor(context!!, R.color.green_A700)
-        )
+        dataset.colors = entries.map { it.data as Int }
 
         //line over the chart
-        dataset.valueLinePart1OffsetPercentage = 90f
-        dataset.valueLineColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        dataset.valueLinePart1OffsetPercentage = 80f
+        dataset.valueLineColor = Utils.getColor(context!!, R.color.grey_300)
         dataset.valueLinePart1Length = 0.8f
-        dataset.valueLinePart2Length = 1f
-
-        dataset.valueTextColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        dataset.valueLinePart2Length = 0.3f
+        dataset.isUsingSliceColorAsValueLineColor = true
+        dataset.valueTextColor = Utils.getColor(context!!, R.color.grey_300)
         //display values outside of the chart
         dataset.yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
         dataset.xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
@@ -247,9 +258,9 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         val data = PieData(dataset)
         data.setValueFormatter(PercentFormatter(pieChart))
-        pieChart.data = data
-        pieChart.invalidate()
-
+        handler.postDelayed({
+            pieChart.data = data
+        }, 200)
     }
 
     private fun getArea() {
@@ -332,7 +343,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
     private fun setupLineChart(view: View) {
         lineChart = view.findViewById(R.id.lineChart)
-        lineChart.setNoDataTextColor(ContextCompat.getColor(context!!, R.color.grey_300))
+        lineChart.setNoDataTextColor(Utils.getColor(context!!, R.color.grey_300))
         lineChart.description.isEnabled = false
         lineChart.setTouchEnabled(true)
         lineChart.isAutoScaleMinMaxEnabled = true
@@ -340,8 +351,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         //no grid background
         lineChart.setDrawGridBackground(false)
         //custom marker
-        val markerView =
-            MarkerView(context!!, R.layout.chart_marker_view)
+        val markerView = MarkerView(context!!, R.layout.chart_marker_view)
         markerView.chartView = lineChart
         lineChart.marker = markerView
 
@@ -358,7 +368,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         xAxis.labelRotationAngle = -30f
         // vertical grid lines
         xAxis.enableGridDashedLine(10f, 5f, 0f)
-        xAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        xAxis.textColor = Utils.getColor(context!!, R.color.grey_300)
         //y-axis style
         val yAxis = lineChart.axisLeft
         // disable dual y-axis
@@ -366,7 +376,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         // horizontal grid lines
         yAxis.enableGridDashedLine(10f, 5f, 0f)
         yAxis.spaceTop = 35f
-        yAxis.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        yAxis.textColor = Utils.getColor(context!!, R.color.grey_300)
     }
 
     private fun setupLineLegend() {
@@ -376,10 +386,19 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
         legend.textSize = 10f
         legend.formSize = 12f
-        legend.textColor = ContextCompat.getColor(context!!, R.color.grey_300)
+        legend.textColor = Utils.getColor(context!!, R.color.grey_300)
     }
 
     private fun setupLineData() {
+
+        //setup x-axis value formatter: display dates (Mar 13)
+        lineChart.xAxis.valueFormatter = DateValueFormatter(
+            area.timelines!!.last().first,
+            area.timelines!!.size
+        )
+        //setup y-axis value formatter: display values in short compact format (12.5 K)
+        lineChart.axisLeft.valueFormatter =
+            CompactDigitValueFormatter()
 
         val confirmedEntries = arrayListOf<Entry>()
         val deathEntries = arrayListOf<Entry>()
@@ -424,22 +443,15 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val recoveredSet: LineDataSet =
             setupLineData(recoveredEntries, "recovered", R.color.green_A700)
 
-
-        lineChart.data = LineData(
-            arrayListOf(
-                confirmedSet, deathSet, recoveredSet
-            ) as List<ILineDataSet>
-        )
-        // draw points over time
-        lineChart.animateX(500)
-        //setup x-axis value formatter: display dates (Mar 13)
-        lineChart.xAxis.valueFormatter = DateValueFormatter(
-            area.timelines!!.last().first,
-            area.timelines!!.size
-        )
-        //setup y-axis value formatter: display values in short compact format (12.5 K)
-        lineChart.axisLeft.valueFormatter =
-            CompactDigitValueFormatter()
+        handler.postDelayed({
+            lineChart.data = LineData(
+                arrayListOf(
+                    confirmedSet, deathSet, recoveredSet
+                ) as List<ILineDataSet>
+            )
+            // draw points over time
+            lineChart.animateX(800)
+        }, 800)
     }
 
     private fun setupLineData(entries: List<Entry>, text: String, color: Int): LineDataSet {
@@ -447,8 +459,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val dataset = LineDataSet(entries, text)
         dataset.mode = LineDataSet.Mode.CUBIC_BEZIER
         //line & circle point colors
-        dataset.color = ContextCompat.getColor(context!!, color)
-        dataset.setCircleColor(ContextCompat.getColor(context!!, color))
+        dataset.color = Utils.getColor(context!!, color)
+        dataset.setCircleColor(Utils.getColor(context!!, color))
         //line thickness and point size
         dataset.lineWidth = 2f
         dataset.circleRadius = 2.5f

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/root_drawer"
     android:layout_height="match_parent">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -65,10 +66,9 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:alpha=".9"
-        android:backgroundTint="#17181A"
+        android:backgroundTint="@color/bg_github_color"
         android:fitsSystemWindows="true"
-        android:paddingTop="20dp"
-        android:paddingBottom="20dp">
+        android:paddingTop="10dp">
 
         <ProgressBar
             android:id="@+id/progressSlider"

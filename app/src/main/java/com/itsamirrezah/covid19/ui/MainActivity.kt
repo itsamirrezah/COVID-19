@@ -2,16 +2,14 @@ package com.itsamirrezah.covid19.ui
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.app.Activity
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -24,7 +22,9 @@ import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
 import com.itsamirrezah.covid19.ui.model.AreaModel
+import com.itsamirrezah.covid19.util.SharedPreferencesUtil
 import com.itsamirrezah.covid19.util.TransitionUtils
+import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.drawer.DrawerItem
 import com.itsamirrezah.covid19.util.drawer.DrawerSearchItem
 import com.itsamirrezah.covid19.util.drawer.SliderSearch
@@ -43,6 +43,7 @@ import io.reactivex.schedulers.Schedulers
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
+    private lateinit var drawerLayout: DrawerLayout
     private lateinit var progressFab: ProgressBar
     private lateinit var progressSlider: ProgressBar
     private lateinit var fab: ExtendedFloatingActionButton
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private val compositeDisposable = CompositeDisposable()
     private lateinit var world: AreaModel
     private lateinit var areas: List<AreaModel>
+    private lateinit var preferences: SharedPreferencesUtil
 
     private val sliderSearch = object : SliderSearch {
 
@@ -72,11 +74,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
+        setupPreferences()
         setupProgressBars()
         setupFab()
         setupSliderView()
         setupAboutBottomSheet()
+    }
+
+    private fun setupPreferences() {
+        preferences = SharedPreferencesUtil.getInstance(applicationContext)
     }
 
     private fun setupProgressBars() {
@@ -115,14 +121,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val aboutBottomSheetView = findViewById<View>(R.id.about_bottomsheet_root)
         aboutBottomSheetBehavior = BottomSheetBehavior.from(aboutBottomSheetView)
         aboutBottomSheetBehavior.skipCollapsed = true
-        aboutBottomSheetBehavior.halfExpandedRatio = 0.7f
-        aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+
+        //fill about sheet text views
         val markWon = Markwon.create(applicationContext)
         fillAboutTextViews(
             markWon,
             findViewById(R.id.tvAppInfo),
             getString(R.string.app_info_title)
         )
+
+        findViewById<TextView>(R.id.tvAppInfoVersion).append(
+            packageManager.getPackageInfo(packageName, 0).versionName
+        )
+
+        fillAboutTextViews(
+            markWon,
+            findViewById(R.id.tvApis),
+            getString(R.string.app_info_api)
+        )
+
         fillAboutTextViews(
             markWon,
             findViewById(R.id.tvDeveloper),
@@ -146,13 +163,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupSliderView() {
         slider = findViewById(R.id.sliderView)
-        //search item on bottom
+        drawerLayout = findViewById(R.id.root_drawer)
+        //slider items:
         val searchItem = DrawerSearchItem(sliderSearch)
-        //app info item on bottom
         val appInfoItem = PrimaryDrawerItem().apply {
             name = StringHolder("Application Info")
             textColor =
-                ColorStateList.valueOf(ContextCompat.getColor(application, R.color.grey_200))
+                ColorStateList.valueOf(Utils.getColor(applicationContext, R.color.grey_200))
             icon = ImageHolder(R.drawable.ic_github)
             isSelectable = false
         }
@@ -164,8 +181,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         //setup slider item click listener
         slider.onDrawerItemClickListener = { _v, drawerItem, _position ->
             if (drawerItem is DrawerItem) {
+                //hide soft keyboard
+                Utils.hideKeyboard(this)
+                //hide about bottomsheet if its open
+                if (aboutBottomSheetBehavior.state != BottomSheetBehavior.STATE_HIDDEN)
+                    aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
                 //relocate camera to selected area
-                hideKeyboard()
                 animateMapCamera(drawerItem.areaCasesModel.latLng!!, 5f)
             } else if (drawerItem is PrimaryDrawerItem) //app info screen
                 aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -182,7 +203,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setupMap()
         setupClusterManager()
         getAllAreas()
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
+        //todo: relocate camera to user's location
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
     }
 
     private fun setupClusterManager() {
@@ -199,6 +221,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isMyLocationButtonEnabled = false
         mMap.uiSettings.isMapToolbarEnabled = false
         mMap.uiSettings.isZoomControlsEnabled = false
+        mMap.uiSettings.isRotateGesturesEnabled = false
 
         //set dark style to map
         val mapStyleOption =
@@ -208,9 +231,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         mMap.setMapStyle(mapStyleOption)
         mMap.setInfoWindowAdapter(
-            ClusterItemInfoWindow(
-                applicationContext
-            )
+            ClusterItemInfoWindow(applicationContext)
         )
         mMap.setOnInfoWindowClickListener {
             showAreaDetailFragment(it!!.tag as AreaModel)
@@ -242,9 +263,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 areas = it
-                mClusterManager.clearItems()
-                mClusterManager.addItems(it)
-                mClusterManager.cluster()
+                updateClusterItems(it)
                 updateSliderItems(areas)
                 getWorld()
             }, {
@@ -252,6 +271,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             })
 
         compositeDisposable.add(requestAreas)
+    }
+
+    private fun updateClusterItems(areas: List<AreaModel>) {
+        mClusterManager.clearItems()
+        for (item in areas) {
+            mClusterManager.addItem(item)
+        }
+        mClusterManager.cluster()
+
     }
 
     //update slider items
@@ -262,6 +290,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         for (area in sortedAreas)
             slider.itemAdapter.add(DrawerItem(area))
         hideProgressSlider()
+
+        if (preferences.isFirstRun) {
+            drawerLayout.openDrawer(slider)
+            preferences.isFirstRun = false
+        }
     }
 
     private fun getWorld() {
@@ -326,14 +359,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         bottomSheet.show(supportFragmentManager, bottomSheet.tag)
     }
 
-    private fun hideKeyboard() {
-        val imm = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        //find currently focused view
-        var view = currentFocus
-        if (view == null) {
-            view = View(applicationContext)
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(slider)) {
+            drawerLayout.closeDrawers()
+            return
         }
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
+        if (aboutBottomSheetBehavior.state != BottomSheetBehavior.STATE_HIDDEN) {
+            aboutBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            return
+        }
+        super.onBackPressed()
     }
 
 }

@@ -9,8 +9,9 @@
     android:alpha="0.95"
     android:minHeight="?attr/actionBarSize"
     app:behavior_hideable="true"
-    app:cardBackgroundColor="#17181A"
+    app:cardBackgroundColor="@color/bg_github_color"
     app:cardCornerRadius="@dimen/spacing_middle"
+    app:behavior_peekHeight="0dp"
     app:cardElevation="16dp"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
@@ -58,7 +59,7 @@
                     android:layout_marginTop="-5dp"
                     android:fontFamily="sans-serif"
                     android:paddingBottom="5dp"
-                    android:text="Version: 0.4.200418"
+                    android:text="Version: "
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                     android:textColor="@color/grey_400"
                     android:textSize="12sp" />
@@ -89,6 +90,20 @@
                 <TextView
                     style="@style/AppInfoHeadlines"
                     android:fontFamily="sans-serif-black"
+                    android:text="APIs" />
+                <TextView
+                    android:id="@+id/tvApis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:lineSpacingExtra="3dp"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textColor="@color/grey_400"
+                    tools:text="@string/app_info_api" />
+
+                <TextView
+                    style="@style/AppInfoHeadlines"
+                    android:fontFamily="sans-serif-black"
                     android:text="Libraries" />
 
                 <TextView
@@ -96,6 +111,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
+                    android:lineSpacingExtra="3dp"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                     android:textColor="@color/grey_400"
                     tools:text="@string/app_info_libraries" />

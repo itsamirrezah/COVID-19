@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
 import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.ui.model.MarkerData
+import com.itsamirrezah.covid19.util.Utils
 
 class MarkerView(
     context: Context,
@@ -26,8 +26,7 @@ class MarkerView(
 
         tvConfirmed.text = data.valueString
         tvDate.text = data.dateString
-        ivColor.backgroundTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(context, data.color))
+        ivColor.backgroundTintList = ColorStateList.valueOf(Utils.getColor(context, data.color))
 
         super.refreshContent(e, highlight)
     }
