@@ -1,7 +1,7 @@
-package com.itsamirrezah.covid19.data.api
+package com.itsamirrezah.covid19.data.covidtrackerapi
 
-import com.itsamirrezah.covid19.data.models.AllCasesResponse
-import com.itsamirrezah.covid19.data.models.AreaResponse
+import com.itsamirrezah.covid19.data.covidtrackerapi.models.AllCasesResponse
+import com.itsamirrezah.covid19.data.covidtrackerapi.models.AreaResponse
 import io.reactivex.Observable
 import retrofit2.http.GET
 import retrofit2.http.Path

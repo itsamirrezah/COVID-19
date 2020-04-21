@@ -4,11 +4,11 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.ui.model.AreaModel
 import com.mikepenz.materialdrawer.model.AbstractDrawerItem
 
 class DrawerItem(
-    val areaCasesModel: AreaCasesModel
+    val areaCasesModel: AreaModel
 ) : AbstractDrawerItem<DrawerItem, DrawerItem.ViewHolder>() {
 
     override val layoutRes: Int

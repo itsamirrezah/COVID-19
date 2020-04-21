@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.BarChart
@@ -20,20 +21,24 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.data.api.CovidApiImp
-import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
+import com.itsamirrezah.covid19.data.novelapi.model.Timelines
+import com.itsamirrezah.covid19.ui.model.AreaModel
 import com.itsamirrezah.covid19.ui.model.MarkerData
 import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.chart.CompactDigitValueFormatter
 import com.itsamirrezah.covid19.util.chart.DateValueFormatter
 import com.itsamirrezah.covid19.util.chart.MarkerView
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.threeten.bp.LocalDate
+import retrofit2.HttpException
 
 class AreaDetailFragment : BottomSheetDialogFragment() {
 
-    private lateinit var areaCaseModel: AreaCasesModel
+    private lateinit var area: AreaModel
     private lateinit var lineChart: LineChart
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
@@ -71,25 +76,30 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         arguments?.let {
-            areaCaseModel = it.getParcelable("AREA_CASE_MODEL_EXTRA")!!
-            view.findViewById<TextView>(R.id.tvCountry).text = areaCaseModel.country
-            view.findViewById<TextView>(R.id.tvConfirmed).text = areaCaseModel.confirmedString
-            view.findViewById<TextView>(R.id.tvDeaths).text = areaCaseModel.deathString
-            if (areaCaseModel.recovered > 0)
+            area = it.getParcelable("AREA_CASE_MODEL_EXTRA")!!
+            view.findViewById<TextView>(R.id.tvCountry).text = area.country
+            view.findViewById<TextView>(R.id.tvConfirmed).text = area.confirmedString
+            view.findViewById<TextView>(R.id.tvDeaths).text = area.deathString
+            if (area.recovered > 0)
                 view.findViewById<TextView>(R.id.tvRecovered).text =
-                    areaCaseModel.recoveredString
+                    area.recoveredString
             setupPieChart(view)
             setupLineChart(view)
             setupBarChart(view)
 
-            if (areaCaseModel.timelines == null) {
-                getAreaCases()
+            if (area.timelines == null) {
+                requestTimeline()
             } else {
                 setupLineData()
                 setupBarData()
             }
 
         }
+    }
+
+    private fun requestTimeline() {
+        if (area.id < 0) getWorld()
+        else getArea()
     }
 
     private fun setupBarChart(view: View) {
@@ -132,8 +142,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun setupBarData() {
         val entries = mutableListOf<BarEntry>()
         //list.indices: returns an [IntRange] of the valid indices for this collection
-        for (count in areaCaseModel.dailyTimelines!!.indices) {
-            val day = areaCaseModel.dailyTimelines!![count]
+        for (count in area.dailyTimelines!!.indices) {
+            val day = area.dailyTimelines!![count]
 
             entries.add(
                 BarEntry(
@@ -165,8 +175,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barChart.animateY(1000)
         //x-axis value formatter
         barChart.xAxis.valueFormatter = DateValueFormatter(
-            areaCaseModel.timelines!!.last().first,
-            areaCaseModel.timelines!!.size
+            area.timelines!!.last().first,
+            area.timelines!!.size
         )
     }
 
@@ -202,12 +212,12 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun setupPieData() {
         //active cases = confirmed cases - (deaths + recovered)
         val activeCases =
-            areaCaseModel.confirmed.toLong() - (areaCaseModel.deaths.toLong() + areaCaseModel.recovered.toLong())
+            area.confirmed.toLong() - (area.deaths.toLong() + area.recovered.toLong())
 
         val entries = mutableListOf(
             PieEntry(activeCases.toFloat(), "Active"),
-            PieEntry(areaCaseModel.deaths.toFloat(), "Deaths"),
-            PieEntry(areaCaseModel.recovered.toFloat(), "Recovered")
+            PieEntry(area.deaths.toFloat(), "Deaths"),
+            PieEntry(area.recovered.toFloat(), "Recovered")
             //do not display entries with no values
         ).filter { it.value != 0f }
 
@@ -242,60 +252,82 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
     }
 
-    private fun getAreaCases() {
-        val areaCasesRequest = CovidApiImp.getApi()
-            .getAreaById(areaCaseModel.id)
-            //map data model to ui model
-            .map {
-                val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
-                val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
-                    mutableListOf()
+    private fun getArea() {
+        val requestArea = NovelApiImp.getApi()
+            .getTimelinesByCountry(area.id.toString())
+            .map { it.timelines }
+            .map { mapToUiModel(it) }
 
-                for ((index, timeline) in it.area.timelines.confirmed.timeline.toList().withIndex()) {
-                    //gather information about area since first case confirmed
-                    if (timeline.second <= 0)
-                        continue
+        subscribe(requestArea)
+    }
 
-                    val confirmed = timeline.second
-                    val deaths = it.area.timelines.deaths.timeline[timeline.first] ?: 0
-                    val recovered = it.area.timelines.recovered.timeline[timeline.first] ?: 0
-                    val localDate = Utils.toLocalDate(timeline.first)
-
-                    timelines.add(
-                        Pair(
-                            localDate, Triple(confirmed!!, deaths, recovered)
-                        )
-                    )
-
-                    val dailyConfirmed =
-                        confirmed - it.area.timelines.confirmed.timeline.toList()
-                            .getOrElse(index - 1) { Pair("", 0) }.second
-                    val dailyDeaths =
-                        deaths - it.area.timelines.deaths.timeline.toList()
-                            .getOrElse(index - 1) { Pair("", 0) }.second
-                    val dailyRecovered =
-                        recovered - it.area.timelines.recovered.timeline.toList()
-                            .getOrElse(index - 1) { Pair("", 0) }.second
-
-                    dailyTimeline.add(
-                        Pair(
-                            localDate, Triple(dailyConfirmed, dailyDeaths, dailyRecovered)
-                        )
-                    )
-                }
-
-                areaCaseModel.timelines = timelines
-                areaCaseModel.dailyTimelines = dailyTimeline
-                areaCaseModel
-            }
-            .subscribeOn(Schedulers.io())
+    private fun subscribe(observable: Observable<AreaModel>): Disposable? {
+        return observable.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 setupLineData()
                 setupBarData()
             }, {
-                print(it.message)
+                //error
+                if (it is HttpException)
+                    displayApiError()
             })
+    }
+
+    private fun displayApiError() {
+        Toast.makeText(activity, "Historical data are not available", Toast.LENGTH_LONG)
+            .show()
+    }
+
+    private fun getWorld() {
+        val world = NovelApiImp.getApi()
+            .getWorldTimeline()
+            .map { mapToUiModel(it) }
+
+        subscribe(world)
+    }
+
+    private fun mapToUiModel(it: Timelines): AreaModel {
+        val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
+        val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
+            mutableListOf()
+
+        for ((index, timeline) in it.confirmed.toList().withIndex()) {
+            //gather information about area since first case confirmed
+            if (timeline.second <= 0)
+                continue
+
+            val confirmed = timeline.second
+            val deaths = it.deaths[timeline.first] ?: 0
+            val recovered = it.recovered[timeline.first] ?: 0
+            val localDate = Utils.toLocalDate(timeline.first)
+
+            timelines.add(
+                Pair(
+                    localDate, Triple(confirmed!!, deaths, recovered)
+                )
+            )
+
+            val dailyConfirmed =
+                confirmed - it.confirmed.toList()
+                    .getOrElse(index - 1) { Pair("", 0) }.second
+            val dailyDeaths =
+                deaths - it.deaths.toList()
+                    .getOrElse(index - 1) { Pair("", 0) }.second
+            val dailyRecovered =
+                recovered - it.recovered.toList()
+                    .getOrElse(index - 1) { Pair("", 0) }.second
+
+            dailyTimeline.add(
+                Pair(
+                    localDate, Triple(dailyConfirmed, dailyDeaths, dailyRecovered)
+                )
+            )
+        }
+
+        area.timelines = timelines
+        area.dailyTimelines = dailyTimeline
+        return area
     }
 
     private fun setupLineChart(view: View) {
@@ -353,7 +385,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val deathEntries = arrayListOf<Entry>()
         val recoveredEntries = arrayListOf<Entry>()
 
-        for ((count, value) in areaCaseModel.timelines!!.withIndex()) {
+        for ((count, value) in area.timelines!!.withIndex()) {
             val confirmedEntry = Entry(
                 count.toFloat(),
                 value.second.first.toFloat(),
@@ -402,8 +434,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         lineChart.animateX(500)
         //setup x-axis value formatter: display dates (Mar 13)
         lineChart.xAxis.valueFormatter = DateValueFormatter(
-            areaCaseModel.timelines!!.last().first,
-            areaCaseModel.timelines!!.size
+            area.timelines!!.last().first,
+            area.timelines!!.size
         )
         //setup y-axis value formatter: display values in short compact format (12.5 K)
         lineChart.axisLeft.valueFormatter =

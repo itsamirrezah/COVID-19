@@ -19,7 +19,7 @@ import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.google.maps.android.ui.IconGenerator
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.ui.model.AreaModel
 import com.itsamirrezah.covid19.util.Utils
 import kotlin.math.min
 
@@ -27,9 +27,9 @@ import kotlin.math.min
 class AreaMarker(
     private val context: Context,
     private val mMap: GoogleMap,
-    clusterManager: ClusterManager<AreaCasesModel>
-) : DefaultClusterRenderer<AreaCasesModel>(context, mMap, clusterManager),
-    ClusterManager.OnClusterClickListener<AreaCasesModel> {
+    clusterManager: ClusterManager<AreaModel>
+) : DefaultClusterRenderer<AreaModel>(context, mMap, clusterManager),
+    ClusterManager.OnClusterClickListener<AreaModel> {
 
     private var markerRootView: View =
         LayoutInflater.from(context).inflate(R.layout.cluster_marker, null) as FrameLayout
@@ -68,18 +68,18 @@ class AreaMarker(
         markerIconGen.setContentView(markerRootView)
     }
 
-    override fun onClusterItemRendered(clusterItem: AreaCasesModel?, marker: Marker?) {
+    override fun onClusterItemRendered(clusterItem: AreaModel?, marker: Marker?) {
         marker!!.tag = clusterItem
     }
 
-    override fun onBeforeClusterItemRendered(item: AreaCasesModel?, markerOptions: MarkerOptions?) {
+    override fun onBeforeClusterItemRendered(item: AreaModel?, markerOptions: MarkerOptions?) {
         tvCaseMarker.text = item!!.confirmedString
         val icon = markerIconGen.makeIcon()
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
 
     override fun onBeforeClusterRendered(
-        cluster: Cluster<AreaCasesModel>?,
+        cluster: Cluster<AreaModel>?,
         markerOptions: MarkerOptions?
     ) {
         val clusterCasesCount = cluster!!.items.sumBy { it.confirmed.toInt() }
@@ -94,14 +94,14 @@ class AreaMarker(
         markerOptions!!.icon(BitmapDescriptorFactory.fromBitmap(icon))
     }
 
-    override fun shouldRenderAsCluster(cluster: Cluster<AreaCasesModel>?): Boolean {
+    override fun shouldRenderAsCluster(cluster: Cluster<AreaModel>?): Boolean {
         if (cluster!!.size > 2)
             return true
         return false
     }
 
-    override fun onClusterClick(cluster: Cluster<AreaCasesModel>?): Boolean {
-        val areas = mutableListOf<AreaCasesModel>()
+    override fun onClusterClick(cluster: Cluster<AreaModel>?): Boolean {
+        val areas = mutableListOf<AreaModel>()
         areas.addAll(cluster!!.items)
         val boundBuilder = LatLngBounds.builder()
         var clusterItemsCount = 0

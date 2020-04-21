@@ -22,10 +22,9 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.maps.android.clustering.ClusterManager
 import com.itsamirrezah.covid19.R
-import com.itsamirrezah.covid19.data.api.CovidApiImp
-import com.itsamirrezah.covid19.ui.model.AreaCasesModel
+import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
+import com.itsamirrezah.covid19.ui.model.AreaModel
 import com.itsamirrezah.covid19.util.TransitionUtils
-import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.drawer.DrawerItem
 import com.itsamirrezah.covid19.util.drawer.DrawerSearchItem
 import com.itsamirrezah.covid19.util.drawer.SliderSearch
@@ -41,7 +40,6 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import org.threeten.bp.LocalDate
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -51,18 +49,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var slider: MaterialDrawerSliderView
     private lateinit var aboutBottomSheetBehavior: BottomSheetBehavior<View>
     private lateinit var mMap: GoogleMap
-    private lateinit var mClusterManager: ClusterManager<AreaCasesModel>
+    private lateinit var mClusterManager: ClusterManager<AreaModel>
     private val compositeDisposable = CompositeDisposable()
-    private lateinit var world: AreaCasesModel
-    private lateinit var areaCases: List<AreaCasesModel>
+    private lateinit var world: AreaModel
+    private lateinit var areas: List<AreaModel>
 
     private val sliderSearch = object : SliderSearch {
 
         override fun perform(searchEntry: CharSequence) {
-            val filteredItems = areaCases.filter {
+            val filteredItems = areas.filter {
                 return@filter it.country.toLowerCase().contains(searchEntry) ||
-                        it.province.toLowerCase().contains(searchEntry.toString()) ||
-                        it.countryCode.toLowerCase().contains(searchEntry.toString())
+                        it.province.toLowerCase().contains(searchEntry.toString())
             }
             updateSliderItems(filteredItems)
         }
@@ -184,7 +181,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
         setupMap()
         setupClusterManager()
-        getAllCases()
+        getAllAreas()
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(32.0, 53.0), 5f))
     }
 
@@ -216,50 +213,49 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         )
         mMap.setOnInfoWindowClickListener {
-            showAreaDetailFragment(it!!.tag as AreaCasesModel)
+            showAreaDetailFragment(it!!.tag as AreaModel)
         }
 
     }
 
-    private fun getAllCases() {
-        val requestAllCases = CovidApiImp.getApi()
-            .getAllCases(false)
+    private fun getAllAreas() {
+        val requestAreas = NovelApiImp.getApi()
+            .getAllCases()
             //returning locations one by one
-            .flatMap { Observable.fromIterable(it.areas) }
+            .flatMap { Observable.fromIterable(it) }
             //just get the locations that has at least one confirm case
-            .filter { it.latest.confirmed > 0 }
+            .filter { it.confirmedCases > 0 }
             //map data model to ui model
             .map {
-                AreaCasesModel(
-                    it.id,
-                    LatLng(it.coordinates.lat.toDouble(), it.coordinates.lon.toDouble()),
-                    it.country,
-                    it.countryCode,
-                    it.province,
-                    it.latest.confirmed,
-                    it.latest.deaths,
-                    it.latest.recovered
+                AreaModel(
+                    it.countryInfo.id,
+                    LatLng(it.countryInfo.lat.toDouble(), it.countryInfo.lon.toDouble()),
+                    it.countryName,
+                    "",
+                    it.confirmedCases,
+                    it.deaths,
+                    it.recovered
                 )
             }
             .toList()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                areaCases = it
+                areas = it
                 mClusterManager.clearItems()
                 mClusterManager.addItems(it)
                 mClusterManager.cluster()
-                updateSliderItems(areaCases)
-                makeWorld()
+                updateSliderItems(areas)
+                getWorld()
             }, {
                 print(it.message)
             })
 
-        compositeDisposable.add(requestAllCases)
+        compositeDisposable.add(requestAreas)
     }
 
     //update slider items
-    private fun updateSliderItems(areas: List<AreaCasesModel>) {
+    private fun updateSliderItems(areas: List<AreaModel>) {
         slider.itemAdapter.clear()
         val sortedAreas = areas.toMutableList()
         sortedAreas.sortByDescending { area -> area.confirmed }
@@ -268,97 +264,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         hideProgressSlider()
     }
 
-    private fun makeWorld() {
-        val requestWorld = CovidApiImp.getApi()
-            .getAllCases(true)
-            //just get the locations that has at least one confirm case
-            .filter { it.latest.confirmed > 0 }
+    private fun getWorld() {
+        val requestWorld = NovelApiImp.getApi()
+            .getWorldCases()
             .map {
-                //setup world timeline
-                val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
-                val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
-                    mutableListOf()
-
-                for (area in it.areas) {
-                    val confirmedTimeline = area.timelines.confirmed.timeline
-                    val deathsTimeline = area.timelines.deaths.timeline
-                    val recoveredTimeline = area.timelines.recovered.timeline
-
-                    //pair = Pair(key,value)
-                    for ((index, pair) in confirmedTimeline.toList().withIndex()) {
-                        val confirmed = pair.second +
-                                timelines.getOrElse(index) {
-                                    Pair(
-                                        null,
-                                        Triple(0, 0, 0)
-                                    )
-                                }.second.first
-                        val deaths = (deathsTimeline[pair.first] ?: 0) +
-                                timelines.getOrElse(index) {
-                                    Pair(
-                                        null,
-                                        Triple(0, 0, 0)
-                                    )
-                                }.second.second
-                        val recovered = (recoveredTimeline[pair.first] ?: 0) +
-                                timelines.getOrElse(index) {
-                                    Pair(
-                                        null,
-                                        Triple(0, 0, 0)
-                                    )
-                                }.second.third
-                        val localDate = Utils.toLocalDate(pair.first)
-
-                        val data = Pair(localDate, Triple(confirmed, deaths, recovered))
-                        if (timelines.size <= index)
-                            timelines.add(data)
-                        else
-                            timelines[index] = data
-                    }
-                }
-
-                //setup world daily
-                for ((index, timeline) in timelines.withIndex()) {
-                    val confirmed = timeline.second.first
-                    val deaths = timeline.second.second
-                    val recovered = timeline.second.third
-                    val dailyConfirmed =
-                        confirmed - timelines.getOrElse(index - 1) {
-                            Pair(null, Triple(0, 0, 0))
-                        }.second.first
-                    val dailyDeaths = deaths - timelines.getOrElse(index - 1) {
-                        Pair(null, Triple(0, 0, 0))
-                    }.second.second
-                    val dailyRecovered = recovered - timelines.getOrElse(index - 1) {
-                        Pair(null, Triple(0, 0, 0))
-                    }.second.third
-
-                    dailyTimeline.add(
-                        Pair(
-                            timeline.first,
-                            Triple(
-                                dailyConfirmed, dailyDeaths, dailyRecovered
-                            )
-                        )
-                    )
-                }
-                world = AreaCasesModel(
-                    it.latest.confirmed,
-                    it.latest.deaths,
-                    it.latest.recovered,
-                    timelines,
-                    dailyTimeline
+                AreaModel(
+                    -1,
+                    it.confirmedCases,
+                    it.deaths,
+                    it.recovered,
+                    "Worldwide"
                 )
             }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
+                world = it
                 showWorldFab()
             }, {
                 print(it.message)
             })
-
-        compositeDisposable.add(requestWorld)
     }
 
     private fun showWorldFab() {
@@ -393,7 +318,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )
     }
 
-    private fun showAreaDetailFragment(areaCaseModel: AreaCasesModel) {
+    private fun showAreaDetailFragment(areaCaseModel: AreaModel) {
         val bottomSheet = AreaDetailFragment()
         val bundle = Bundle()
         bundle.putParcelable("AREA_CASE_MODEL_EXTRA", areaCaseModel)
