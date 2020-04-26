@@ -5,6 +5,8 @@ An Android application for tracking the COVID-19 outbreak around the world, writ
   <img src="/assets/Screenshot5_5_v0.5.200421.jpg">
 </p>
 
+You can download the apk from [Releases](https://github.com/itsamirrezah/COVID-19/releases) section.
+
 ### API
 * [Novel COVID API](https://github.com/NovelCOVID/API)
 * [Coronavirus Tracker API](https://github.com/ExpDev07/coronavirus-tracker-api)
