@@ -49,17 +49,28 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.TransparentBottomSheetDialogTheme)
+        arguments?.let {
+            area = it.getParcelable("AREA_CASE_MODEL_EXTRA")!!
+        }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_area_detail, container, false)
-        setupPieChart(view)
-        setupLineChart(view)
-        setupBarChart(view)
-        return view
+        return inflater.inflate(R.layout.fragment_area_detail, container, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        setupPieData()
+        if (area.timelines == null) {
+            requestTimeline()
+        } else {
+            setupLineData()
+            setupBarData()
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -80,22 +91,14 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        arguments?.let {
-            area = it.getParcelable("AREA_CASE_MODEL_EXTRA")!!
-            view.findViewById<TextView>(R.id.tvCountry).text = area.country
-            view.findViewById<TextView>(R.id.tvConfirmed).text = area.confirmedString
-            view.findViewById<TextView>(R.id.tvDeaths).text = area.deathString
-            view.findViewById<TextView>(R.id.tvRecovered).text = area.recoveredString
+        view.findViewById<TextView>(R.id.tvCountry).text = area.country
+        view.findViewById<TextView>(R.id.tvConfirmed).text = area.confirmedString
+        view.findViewById<TextView>(R.id.tvDeaths).text = area.deathString
+        view.findViewById<TextView>(R.id.tvRecovered).text = area.recoveredString
 
-            setupPieData()
-            if (area.timelines == null) {
-                requestTimeline()
-            } else {
-                setupLineData()
-                setupBarData()
-            }
-
-        }
+        setupPieChart(view)
+        setupLineChart(view)
+        setupBarChart(view)
     }
 
     override fun onDestroy() {
@@ -159,10 +162,15 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         for (count in area.timelines!!.indices) {
             val day = area.timelines!![count]
 
-            entries.add(BarEntry(
+            entries.add(
+                BarEntry(
                     count.toFloat(),
                     day.dailyCases.confirmed.toFloat(),
-                    MarkerData(day.relativeDate, day.dailyCases.formattedConfirmed, R.color.yellow_A700)
+                    MarkerData(
+                        day.relativeDate,
+                        day.dailyCases.formattedConfirmed,
+                        R.color.yellow_A700
+                    )
                 )
             )
         }
@@ -316,10 +324,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
                 recovered - it.recovered.toList().getOrElse(index - 1) { Pair("", 0) }.second
 
 
-            val latestCases = Cases(confirmed,deaths, recovered)
+            val latestCases = Cases(confirmed, deaths, recovered)
             val dailyCases = Cases(dailyConfirmed, dailyDeaths, dailyRecovered)
 
-            timelines.add(TimelineData(latestCases,dailyCases, localDate))
+            timelines.add(TimelineData(latestCases, dailyCases, localDate))
         }
         area.timelines = timelines
         return area
@@ -425,7 +433,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val recoveredSet: LineDataSet =
             setupLineData(recoveredEntries, "recovered", R.color.green_A700)
 
-        lineChart.data = LineData(arrayListOf(confirmedSet, deathSet, recoveredSet) as List<ILineDataSet>)
+        lineChart.data =
+            LineData(arrayListOf(confirmedSet, deathSet, recoveredSet) as List<ILineDataSet>)
         lineChart.invalidate()
     }
 
