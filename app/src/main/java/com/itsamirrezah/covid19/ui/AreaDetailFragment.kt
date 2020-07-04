@@ -143,25 +143,17 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
     private fun setupBarData() {
         //x-axis value formatter
-        barChart.xAxis.valueFormatter = DateValueFormatter(
-            area.timelines!!.last().first,
-            area.timelines!!.size
-        )
+        barChart.xAxis.valueFormatter = DateValueFormatter(area.timelines!!)
 
         val entries = mutableListOf<BarEntry>()
         //list.indices: returns an [IntRange] of the valid indices for this collection
-        for (count in area.dailyTimelines!!.indices) {
-            val day = area.dailyTimelines!![count]
+        for (count in area.timelines!!.indices) {
+            val day = area.timelines!![count]
 
-            entries.add(
-                BarEntry(
+            entries.add(BarEntry(
                     count.toFloat(),
-                    floatArrayOf(
-                        day.second.first.toFloat(),
-                        day.second.second.toFloat(),
-                        day.second.third.toFloat()
-                    ),
-                    MarkerData(day.first, day.second.first, R.color.yellow_A700)
+                    day.dailyCases.confirmed.toFloat(),
+                    MarkerData(day.relativeDate, day.dailyCases.formattedConfirmed, R.color.yellow_A700)
                 )
             )
         }
@@ -171,11 +163,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barDataSet.setDrawValues(false)
         barDataSet.setDrawIcons(false)
         //bar colors
-        barDataSet.colors = mutableListOf(
-            Utils.getColor(context!!, R.color.yellow_A700), //confirmed
-            Utils.getColor(context!!, R.color.red_A700), //deaths
-            Utils.getColor(context!!, R.color.green_A700) //recovered
-        )
+        barDataSet.colors = mutableListOf(Utils.getColor(context!!, R.color.yellow_A700))
         barDataSet.highLightColor = Utils.getColor(context!!, R.color.grey_100)
 
         handler.postDelayed({
@@ -299,9 +287,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     }
 
     private fun mapToUiModel(it: Timelines): AreaModel {
-        val timelines: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> = mutableListOf()
-        val dailyTimeline: MutableList<Pair<LocalDate, Triple<Int, Int, Int>>> =
-            mutableListOf()
+        val timelines: MutableList<TimelineData> = mutableListOf()
 
         for ((index, timeline) in it.confirmed.toList().withIndex()) {
             //gather information about area since first case confirmed
@@ -313,31 +299,20 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             val recovered = it.recovered[timeline.first] ?: 0
             val localDate = Utils.toLocalDate(timeline.first)
 
-            timelines.add(
-                Pair(
-                    localDate, Triple(confirmed!!, deaths, recovered)
-                )
-            )
-
             val dailyConfirmed =
-                confirmed - it.confirmed.toList()
-                    .getOrElse(index - 1) { Pair("", 0) }.second
+                confirmed - it.confirmed.toList().getOrElse(index - 1) { Pair("", 0) }.second
             val dailyDeaths =
-                deaths - it.deaths.toList()
-                    .getOrElse(index - 1) { Pair("", 0) }.second
+                deaths - it.deaths.toList().getOrElse(index - 1) { Pair("", 0) }.second
             val dailyRecovered =
-                recovered - it.recovered.toList()
-                    .getOrElse(index - 1) { Pair("", 0) }.second
+                recovered - it.recovered.toList().getOrElse(index - 1) { Pair("", 0) }.second
 
-            dailyTimeline.add(
-                Pair(
-                    localDate, Triple(dailyConfirmed, dailyDeaths, dailyRecovered)
-                )
-            )
+
+            val latestCases = Cases(confirmed,deaths, recovered)
+            val dailyCases = Cases(dailyConfirmed, dailyDeaths, dailyRecovered)
+
+            timelines.add(TimelineData(latestCases,dailyCases, localDate))
         }
-
         area.timelines = timelines
-        area.dailyTimelines = dailyTimeline
         return area
     }
 
@@ -392,13 +367,9 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun setupLineData() {
 
         //setup x-axis value formatter: display dates (Mar 13)
-        lineChart.xAxis.valueFormatter = DateValueFormatter(
-            area.timelines!!.last().first,
-            area.timelines!!.size
-        )
+        lineChart.xAxis.valueFormatter = DateValueFormatter(area.timelines!!)
         //setup y-axis value formatter: display values in short compact format (12.5 K)
-        lineChart.axisLeft.valueFormatter =
-            CompactDigitValueFormatter()
+        lineChart.axisLeft.valueFormatter = CompactDigitValueFormatter()
 
         val confirmedEntries = arrayListOf<Entry>()
         val deathEntries = arrayListOf<Entry>()
@@ -407,28 +378,28 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         for ((count, value) in area.timelines!!.withIndex()) {
             val confirmedEntry = Entry(
                 count.toFloat(),
-                value.second.first.toFloat(),
+                value.latestCases.confirmed.toFloat(),
                 MarkerData(
-                    value.first,
-                    value.second.first,
+                    value.relativeDate,
+                    value.latestCases.formattedConfirmed,
                     R.color.yellow_A700
                 )
             )
             val deathsEntry = Entry(
                 count.toFloat(),
-                value.second.second.toFloat(),
+                value.latestCases.deaths.toFloat(),
                 MarkerData(
-                    value.first,
-                    value.second.second,
+                    value.relativeDate,
+                    value.latestCases.formattedDeaths,
                     R.color.red_A700
                 )
             )
             val recoveredEntry = Entry(
                 count.toFloat(),
-                value.second.third.toFloat(),
+                value.latestCases.recovered.toFloat(),
                 MarkerData(
-                    value.first,
-                    value.second.third,
+                    value.relativeDate,
+                    value.latestCases.formattedRecovered,
                     R.color.green_A700
                 )
             )

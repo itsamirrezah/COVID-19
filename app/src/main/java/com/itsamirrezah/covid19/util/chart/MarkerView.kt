@@ -24,8 +24,8 @@ class MarkerView(
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
         val data = e!!.data as MarkerData
 
-        tvConfirmed.text = data.valueString
-        tvDate.text = data.dateString
+        tvConfirmed.text = data.formattedValue
+        tvDate.text = data.relativeDate
         ivColor.backgroundTintList = ColorStateList.valueOf(Utils.getColor(context, data.color))
 
         super.refreshContent(e, highlight)
