@@ -81,6 +81,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setupAboutBottomSheet()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.clear()
+    }
+
     private fun setupPreferences() {
         preferences = SharedPreferencesUtil.getInstance(applicationContext)
     }
