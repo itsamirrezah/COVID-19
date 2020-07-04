@@ -16,9 +16,7 @@ data class AreaModel(
     var confirmed: Long,
     var deaths: Long,
     var recovered: Long,
-    //timeline & daily data items format: (Date,(confirmed,death,recovered))
-    var timelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>? = null,
-    var dailyTimelines: List<Pair<LocalDate, Triple<Int, Int, Int>>>? = null
+    var timelines: List<TimelineData>? = null
 ) : ClusterItem, Parcelable {
 
     val confirmedString = Utils.toNumberSeparator(confirmed)
@@ -44,4 +42,28 @@ data class AreaModel(
     override fun getPosition(): LatLng {
         return latLng!!
     }
+}
+
+@Parcelize
+data class Cases(
+    val confirmed: Int,
+    val deaths: Int,
+    val recovered: Int
+): Parcelable {
+    val formattedConfirmed: String
+        get() = Utils.toNumberSeparator(confirmed.toLong())
+    val formattedDeaths: String
+        get() = Utils.toNumberSeparator(deaths.toLong())
+    val formattedRecovered: String
+        get() = Utils.toNumberSeparator(recovered.toLong())
+}
+
+@Parcelize
+data class TimelineData(
+    val latestCases: Cases,
+    val dailyCases: Cases,
+    val localDate: LocalDate
+): Parcelable{
+    val relativeDate: String
+        get() = Utils.shortRelativeDate(localDate)
 }
