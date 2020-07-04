@@ -2,14 +2,11 @@ package com.itsamirrezah.covid19.ui
 
 import android.app.Dialog
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
-import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
@@ -25,7 +22,9 @@ import com.itsamirrezah.covid19.R
 import com.itsamirrezah.covid19.data.novelapi.NovelApiImp
 import com.itsamirrezah.covid19.data.novelapi.model.Timelines
 import com.itsamirrezah.covid19.ui.model.AreaModel
+import com.itsamirrezah.covid19.ui.model.Cases
 import com.itsamirrezah.covid19.ui.model.MarkerData
+import com.itsamirrezah.covid19.ui.model.TimelineData
 import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.chart.CompactDigitValueFormatter
 import com.itsamirrezah.covid19.util.chart.DateValueFormatter
@@ -34,7 +33,6 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import org.threeten.bp.LocalDate
 import retrofit2.HttpException
 
 class AreaDetailFragment : BottomSheetDialogFragment() {
@@ -150,6 +148,9 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupBarData() {
+
+        if (barChart.data != null)
+            return
         //x-axis value formatter
         barChart.xAxis.valueFormatter = DateValueFormatter(area.timelines!!)
 
@@ -174,11 +175,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barDataSet.colors = mutableListOf(Utils.getColor(requireContext(), R.color.yellow_A700))
         barDataSet.highLightColor = Utils.getColor(requireContext(), R.color.grey_100)
 
-        handler.postDelayed({
-            barChart.data = BarData(barDataSet)
-            barChart.animateY(800)
-
-        }, 800)
+        barChart.data = BarData(barDataSet)
+        barChart.invalidate()
     }
 
     private fun setupPieChart(view: View) {
@@ -204,11 +202,13 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         //set entry label
         pieChart.setEntryLabelColor(Utils.getColor(requireContext(), R.color.grey_300))
         pieChart.setEntryLabelTextSize(9f)
-        pieChart.animateY(800, Easing.EaseInOutQuad)
         pieChart.setDrawEntryLabels(false)
     }
 
     private fun setupPieData() {
+
+        if (pieChart.data != null)
+            return
         //active cases = confirmed cases - (deaths + recovered)
         val activeCases = area.confirmed - (area.deaths + area.recovered)
         val entries = listOf(
@@ -253,9 +253,9 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         val data = PieData(dataset)
         data.setValueFormatter(PercentFormatter(pieChart))
-        handler.postDelayed({
-            pieChart.data = data
-        }, 200)
+        pieChart.data = data
+        pieChart.invalidate()
+
     }
 
     private fun getArea() {
@@ -375,6 +375,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
     private fun setupLineData() {
 
+        if (lineChart.data != null)
+            return
         //setup x-axis value formatter: display dates (Mar 13)
         lineChart.xAxis.valueFormatter = DateValueFormatter(area.timelines!!)
         //setup y-axis value formatter: display values in short compact format (12.5 K)
@@ -423,15 +425,8 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val recoveredSet: LineDataSet =
             setupLineData(recoveredEntries, "recovered", R.color.green_A700)
 
-        handler.postDelayed({
-            lineChart.data = LineData(
-                arrayListOf(
-                    confirmedSet, deathSet, recoveredSet
-                ) as List<ILineDataSet>
-            )
-            // draw points over time
-            lineChart.animateX(800)
-        }, 800)
+        lineChart.data = LineData(arrayListOf(confirmedSet, deathSet, recoveredSet) as List<ILineDataSet>)
+        lineChart.invalidate()
     }
 
     private fun setupLineData(entries: List<Entry>, text: String, color: Int): LineDataSet {
