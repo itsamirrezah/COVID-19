@@ -97,3 +97,5 @@ class Utils {
 
     }
 }
+
+const val TAG = "COVID19"

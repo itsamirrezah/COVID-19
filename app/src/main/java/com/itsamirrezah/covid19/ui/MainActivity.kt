@@ -38,6 +38,7 @@ import com.mikepenz.materialdrawer.widget.MaterialDrawerSliderView
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -52,7 +53,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var mClusterManager: ClusterManager<AreaModel>
 
-    //    private val compositeDisposable = CompositeDisposable()
     private lateinit var world: AreaModel
     private lateinit var areas: List<AreaModel>
     private lateinit var preferences: SharedPreferencesUtil
@@ -241,60 +241,49 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getAllAreas() {
+        //get each areas cases
         scope.launch {
-            NovelApiImp.getApi().getAllCases()
-                //just get the locations that has at least one confirm case
-                .filter { it.confirmedCases > 0 }
-                //map data model to ui model
-                .map {
-                    AreaModel(
-                        it.countryInfo.id,
-                        LatLng(it.countryInfo.lat.toDouble(), it.countryInfo.lon.toDouble()),
-                        it.countryName,
-                        "",
-                        it.confirmedCases,
-                        it.deaths,
-                        it.recovered
-                    )
-                }.toList()
+            val defAreas = async {
+                NovelApiImp.getApi().getAllCases()
+                    //just get the locations that has at least one confirm case
+                    .filter { it.confirmedCases > 0 }
+                    .map {
+                        AreaModel(
+                            it.countryInfo.id,
+                            LatLng(it.countryInfo.lat.toDouble(), it.countryInfo.lon.toDouble()),
+                            it.countryName,
+                            "",
+                            it.confirmedCases,
+                            it.deaths,
+                            it.recovered
+                        )
+                    }.toList()
+
+
+            }
+
+            //get worlds cases
+            val defWorld = scope.async {
+                NovelApiImp.getApi().getWorldCases()
+            }
+
+            areas = defAreas.await()
                 .also {
-                    areas = it
                     updateClusterItems(it)
-                    updateSliderItems(areas)
-                    getWorld()
+                    updateSliderItems(it)
                 }
+
+            world = defWorld.await().let {
+                AreaModel(
+                    -1,
+                    it.confirmedCases,
+                    it.deaths,
+                    it.recovered,
+                    "Worldwide"
+                )
+            }.also { showWorldFab() }
+
         }
-//        val requestAreas = NovelApiImp.getApi()
-//            .getAllCases()
-//            //returning locations one by one
-//            .flatMap { Observable.fromIterable(it) }
-//            //just get the locations that has at least one confirm case
-//            .filter { it.confirmedCases > 0 }
-//            //map data model to ui model
-//            .map {
-//                AreaModel(
-//                    it.countryInfo.id,
-//                    LatLng(it.countryInfo.lat.toDouble(), it.countryInfo.lon.toDouble()),
-//                    it.countryName,
-//                    "",
-//                    it.confirmedCases,
-//                    it.deaths,
-//                    it.recovered
-//                )
-//            }
-//            .toList()
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({
-//                areas = it
-//                updateClusterItems(it)
-//                updateSliderItems(areas)
-//                getWorld()
-//            }, {
-//                print(it.message)
-//            })
-//
-//        compositeDisposable.add(requestAreas)
     }
 
     private fun updateClusterItems(areas: List<AreaModel>) {
@@ -319,41 +308,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             drawerLayout.openDrawer(slider)
             preferences.isFirstRun = false
         }
-    }
-
-    private fun getWorld() {
-
-        scope.launch {
-            val response = NovelApiImp.getApi().getWorldCases()
-            world = AreaModel(
-                -1,
-                response.confirmedCases,
-                response.deaths,
-                response.recovered,
-                "Worldwide"
-            )
-            showWorldFab()
-        }
-
-//        val requestWorld = NovelApiImp.getApi()
-//            .getWorldCases()
-//            .map {
-//                AreaModel(
-//                    -1,
-//                    it.confirmedCases,
-//                    it.deaths,
-//                    it.recovered,
-//                    "Worldwide"
-//                )
-//            }
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({
-//                world = it
-//                showWorldFab()
-//            }, {
-//                print(it.message)
-//            })
     }
 
     private fun showWorldFab() {

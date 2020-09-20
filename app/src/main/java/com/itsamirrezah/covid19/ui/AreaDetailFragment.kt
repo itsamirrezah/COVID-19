@@ -2,6 +2,7 @@ package com.itsamirrezah.covid19.ui
 
 import android.app.Dialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,21 +30,15 @@ import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.chart.CompactDigitValueFormatter
 import com.itsamirrezah.covid19.util.chart.DateValueFormatter
 import com.itsamirrezah.covid19.util.chart.MarkerView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class AreaDetailFragment : BottomSheetDialogFragment() {
 
-    val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = CoroutineScope(Dispatchers.Main)
     private lateinit var area: AreaModel
     private lateinit var lineChart: LineChart
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
-
-//    private val compositeDisposable = CompositeDisposable()
-
-    //Lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,17 +95,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         setupBarChart(view)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-//        compositeDisposable.clear()
-    }
-
-    //functions
-
-//    private fun requestTimeline() {
-//        if (area.id < 0) getWorld()
-//        else getArea()
-//    }
 
     private fun setupBarChart(view: View) {
         barChart = view.findViewById(R.id.barChart)
@@ -268,49 +252,23 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private fun getArea() {
 
         val api = NovelApiImp.getApi()
+        Log.d(com.itsamirrezah.covid19.util.TAG, "getArea(): before launching coroutine")
+
         scope.launch {
             val timeline =
                 if (area.id != -1) api.getTimelinesByCountry(area.id.toString()).timelines
                 else api.getWorldTimeline()
+            Log.d(com.itsamirrezah.covid19.util.TAG, "getArea(): getting timeline $timeline")
             mapToUiModel(timeline)
             setupLineData()
             setupBarData()
         }
-//        val requestArea = NovelApiImp.getApi()
-//            .getTimelinesByCountry(area.id.toString())
-//            .map { it.timelines }
-//            .map { mapToUiModel(it) }
-//
-//        subscribe(requestArea)
     }
-
-//    private fun subscribe(observable: Observable<AreaModel>) {
-//        val observable = observable.subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({
-//                setupLineData()
-//                setupBarData()
-//            }, {
-//                //error
-//                if (it is HttpException)
-//                    displayApiError()
-//            })
-//
-//        compositeDisposable.add(observable)
-//    }
 
     private fun displayApiError() {
         Toast.makeText(activity, "Historical data are not available", Toast.LENGTH_LONG)
             .show()
     }
-
-//    private fun getWorld() {
-//        val world = NovelApiImp.getApi()
-//            .getWorldTimeline()
-//            .map { mapToUiModel(it) }
-//
-//        subscribe(world)
-//    }
 
     private fun mapToUiModel(it: Timelines): AreaModel {
         val timelines: MutableList<TimelineData> = mutableListOf()
@@ -466,5 +424,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         dataset.setDrawValues(false)
 
         return dataset
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
     }
 }
