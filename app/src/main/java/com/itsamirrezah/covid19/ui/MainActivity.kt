@@ -10,6 +10,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -36,14 +37,11 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.util.addStickyDrawerItems
 import com.mikepenz.materialdrawer.widget.MaterialDrawerSliderView
 import io.noties.markwon.Markwon
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private val scope = CoroutineScope(Dispatchers.Main)
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var progressFab: ProgressBar
     private lateinit var progressSlider: ProgressBar
@@ -242,7 +240,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun getAllAreas() {
         //get each areas cases
-        scope.launch {
+        lifecycleScope.launch {
             val defAreas = async {
                 NovelApiImp.getApi().getAllCases()
                     //just get the locations that has at least one confirm case
@@ -258,12 +256,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             it.recovered
                         )
                     }.toList()
-
-
             }
 
             //get worlds cases
-            val defWorld = scope.async {
+            val defWorld = async {
                 NovelApiImp.getApi().getWorldCases()
             }
 
@@ -361,6 +357,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             return
         }
         super.onBackPressed()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 
 }

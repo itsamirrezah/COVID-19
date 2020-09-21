@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
@@ -30,17 +31,17 @@ import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.chart.CompactDigitValueFormatter
 import com.itsamirrezah.covid19.util.chart.DateValueFormatter
 import com.itsamirrezah.covid19.util.chart.MarkerView
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 
 class AreaDetailFragment : BottomSheetDialogFragment() {
 
-    private val scope = CoroutineScope(Dispatchers.Main)
     private lateinit var area: AreaModel
     private lateinit var lineChart: LineChart
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        lifecycleScope
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.TransparentBottomSheetDialogTheme)
         arguments?.let {
@@ -254,7 +255,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val api = NovelApiImp.getApi()
         Log.d(com.itsamirrezah.covid19.util.TAG, "getArea(): before launching coroutine")
 
-        scope.launch {
+        lifecycleScope.launch {
             val timeline =
                 if (area.id != -1) api.getTimelinesByCountry(area.id.toString()).timelines
                 else api.getWorldTimeline()
@@ -424,10 +425,5 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         dataset.setDrawValues(false)
 
         return dataset
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        scope.cancel()
     }
 }
