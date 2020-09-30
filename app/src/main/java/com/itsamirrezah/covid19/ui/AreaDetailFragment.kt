@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
@@ -29,11 +31,7 @@ import com.itsamirrezah.covid19.util.Utils
 import com.itsamirrezah.covid19.util.chart.CompactDigitValueFormatter
 import com.itsamirrezah.covid19.util.chart.DateValueFormatter
 import com.itsamirrezah.covid19.util.chart.MarkerView
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
-import retrofit2.HttpException
+import kotlinx.coroutines.*
 
 class AreaDetailFragment : BottomSheetDialogFragment() {
 
@@ -41,10 +39,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
-
-    private val compositeDisposable = CompositeDisposable()
-
-    //Lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,18 +55,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         return inflater.inflate(R.layout.fragment_area_detail, container, false)
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        setupPieData()
-        if (area.timelines == null) {
-            requestTimeline()
-        } else {
-            setupLineData()
-            setupBarData()
-        }
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         val bottomSheetDialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
@@ -84,8 +66,54 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
             //skip the collapsed state
             behavior.skipCollapsed = true
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            requestAndShowData()
         }
         return bottomSheetDialog
+    }
+
+    private fun requestAndShowData() {
+
+        lifecycleScope.launch(Dispatchers.Default) {
+            if (area.timelines == null) {
+                withContext(Dispatchers.IO) {
+                    getArea()
+                }
+            }
+            val pieDataDeferred = async { setupPieData() }
+            val lineDataDeferred = async { setupLineData() }
+            val barDataDeferred = async { setupBarData() }
+
+            setupCharts()
+            awaitChartsData(pieDataDeferred, lineDataDeferred, barDataDeferred)
+            withContext(Dispatchers.Main) {
+                animateCharts()
+            }
+        }
+
+    }
+
+    private fun setupCharts() {
+        setupPieChart()
+        setupLineChart()
+        setupBarChart()
+    }
+
+    private suspend fun awaitChartsData(
+        pieData: Deferred<PieData>,
+        lineData: Deferred<LineData>,
+        barData: Deferred<BarData>
+    ) {
+        pieChart.data = pieData.await()
+        lineChart.data = lineData.await()
+        barChart.data = barData.await()
+    }
+
+    private suspend fun animateCharts() {
+        pieChart.spin(200, 0f, 360f, Easing.EaseInOutQuad)
+        delay(150)
+        lineChart.animateX(200, Easing.EaseInOutQuad)
+        delay(150)
+        barChart.animateY(200, Easing.EaseInOutQuad)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -95,26 +123,13 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         view.findViewById<TextView>(R.id.tvConfirmed).text = area.confirmedString
         view.findViewById<TextView>(R.id.tvDeaths).text = area.deathString
         view.findViewById<TextView>(R.id.tvRecovered).text = area.recoveredString
-
-        setupPieChart(view)
-        setupLineChart(view)
-        setupBarChart(view)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.clear()
-    }
-
-    //functions
-
-    private fun requestTimeline() {
-        if (area.id < 0) getWorld()
-        else getArea()
-    }
-
-    private fun setupBarChart(view: View) {
+        pieChart = view.findViewById(R.id.pieChart)
+        lineChart = view.findViewById(R.id.lineChart)
         barChart = view.findViewById(R.id.barChart)
+    }
+
+    private fun setupBarChart() {
+
         barChart.setNoDataTextColor(Utils.getColor(requireContext(), R.color.grey_300))
         barChart.description.isEnabled = false
         barChart.setDrawGridBackground(false)
@@ -150,10 +165,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         barChart.legend.isEnabled = false
     }
 
-    private fun setupBarData() {
+    private fun setupBarData(): BarData {
 
         if (barChart.data != null)
-            return
+            return barChart.data
         //x-axis value formatter
         barChart.xAxis.valueFormatter = DateValueFormatter(area.timelines!!)
 
@@ -182,13 +197,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         //bar colors
         barDataSet.colors = mutableListOf(Utils.getColor(requireContext(), R.color.yellow_A700))
         barDataSet.highLightColor = Utils.getColor(requireContext(), R.color.grey_100)
-
-        barChart.data = BarData(barDataSet)
-        barChart.invalidate()
+        return BarData(barDataSet)
     }
 
-    private fun setupPieChart(view: View) {
-        pieChart = view.findViewById(R.id.pieChart)
+    private fun setupPieChart() {
         pieChart.description.isEnabled = false
         pieChart.setNoDataTextColor(Utils.getColor(requireContext(), R.color.grey_300))
         //padding for left/top/right & bottom of the chart
@@ -213,10 +225,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         pieChart.setDrawEntryLabels(false)
     }
 
-    private fun setupPieData() {
+    private fun setupPieData(): PieData {
 
         if (pieChart.data != null)
-            return
+            return pieChart.data
         //active cases = confirmed cases - (deaths + recovered)
         val activeCases = area.confirmed - (area.deaths + area.recovered)
         val entries = listOf(
@@ -259,48 +271,25 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         dataset.xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
         dataset.valueTextSize = 10f
 
-        val data = PieData(dataset)
-        data.setValueFormatter(PercentFormatter(pieChart))
-        pieChart.data = data
-        pieChart.invalidate()
-
+        val pieData = PieData(dataset)
+        pieData.setValueFormatter(PercentFormatter(pieChart))
+        return pieData
     }
 
-    private fun getArea() {
-        val requestArea = NovelApiImp.getApi()
-            .getTimelinesByCountry(area.id.toString())
-            .map { it.timelines }
-            .map { mapToUiModel(it) }
+    private suspend fun getArea() {
 
-        subscribe(requestArea)
-    }
-
-    private fun subscribe(observable: Observable<AreaModel>) {
-        val observable = observable.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                setupLineData()
-                setupBarData()
-            }, {
-                //error
-                if (it is HttpException)
-                    displayApiError()
-            })
-
-        compositeDisposable.add(observable)
+        val api = NovelApiImp.getApi()
+        val timeline =
+            if (area.id != -1) api.getTimelinesByCountry(area.id.toString()).timelines
+            else api.getWorldTimeline()
+        mapToUiModel(timeline)
+        setupLineData()
+        setupBarData()
     }
 
     private fun displayApiError() {
         Toast.makeText(activity, "Historical data are not available", Toast.LENGTH_LONG)
             .show()
-    }
-
-    private fun getWorld() {
-        val world = NovelApiImp.getApi()
-            .getWorldTimeline()
-            .map { mapToUiModel(it) }
-
-        subscribe(world)
     }
 
     private fun mapToUiModel(it: Timelines): AreaModel {
@@ -333,8 +322,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         return area
     }
 
-    private fun setupLineChart(view: View) {
-        lineChart = view.findViewById(R.id.lineChart)
+    private fun setupLineChart() {
         lineChart.setNoDataTextColor(Utils.getColor(requireContext(), R.color.grey_300))
         lineChart.description.isEnabled = false
         lineChart.setTouchEnabled(true)
@@ -349,7 +337,6 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         setupLineAxis()
         setupLineLegend()
-
     }
 
     private fun setupLineAxis() {
@@ -381,10 +368,10 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         legend.textColor = Utils.getColor(requireContext(), R.color.grey_300)
     }
 
-    private fun setupLineData() {
+    private fun setupLineData(): LineData {
 
         if (lineChart.data != null)
-            return
+            return lineChart.data
         //setup x-axis value formatter: display dates (Mar 13)
         lineChart.xAxis.valueFormatter = DateValueFormatter(area.timelines!!)
         //setup y-axis value formatter: display values in short compact format (12.5 K)
@@ -433,9 +420,7 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
         val recoveredSet: LineDataSet =
             setupLineData(recoveredEntries, "recovered", R.color.green_A700)
 
-        lineChart.data =
-            LineData(arrayListOf(confirmedSet, deathSet, recoveredSet) as List<ILineDataSet>)
-        lineChart.invalidate()
+        return LineData(arrayListOf(confirmedSet, deathSet, recoveredSet) as List<ILineDataSet>)
     }
 
     private fun setupLineData(entries: List<Entry>, text: String, color: Int): LineDataSet {
@@ -458,4 +443,5 @@ class AreaDetailFragment : BottomSheetDialogFragment() {
 
         return dataset
     }
+
 }
